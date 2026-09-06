@@ -66,6 +66,7 @@ public class LauncherActivity extends BaseActivity {
     private ProgressServiceKeeper mProgressServiceKeeper;
     private ModloaderInstallTracker mInstallTracker;
     private NotificationManager mNotificationManager;
+    private volatile boolean mRuntimesReady;
 
     /* Allows to switch from one button "type" to another */
     private final FragmentManager.FragmentLifecycleCallbacks mFragmentCallbackListener = new FragmentManager.FragmentLifecycleCallbacks() {
@@ -104,6 +105,10 @@ public class LauncherActivity extends BaseActivity {
     };
 
     private final ExtraListener<Boolean> mLaunchGameListener = (key, value) -> {
+        if (!mRuntimesReady) {
+            Toast.makeText(this, R.string.mikael_runtime_installing, Toast.LENGTH_LONG).show();
+            return false;
+        }
         if(mProgressLayout.hasProcesses()){
             Toast.makeText(this, R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
             return false;
@@ -210,6 +215,12 @@ public class LauncherActivity extends BaseActivity {
         );
         getWindow().setBackgroundDrawable(null);
         bindViews();
+        RuntimeBootstrap.ensureInstalled(this, (success, error) -> {
+            mRuntimesReady = success;
+            if (!success) {
+                Toast.makeText(this, R.string.mikael_runtime_install_failed, Toast.LENGTH_LONG).show();
+            }
+        });
         checkNotificationPermission();
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         ProgressKeeper.addTaskCountListener(mDoubleLaunchPreventionListener);
