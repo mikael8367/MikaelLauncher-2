@@ -3,6 +3,9 @@
     <!-- App name part -->
     <string name="app_name">MikaelLauncher</string>
     <string name="app_short_name">MikaelLauncher</string>
+    <string name="elyby_missing_credentials">Informe usuário e senha do Ely.by.</string>
+    <string name="elyby_login_success">Conta Ely.by adicionada.</string>
+    <string name="elyby_login_error">Falha no login Ely.by: %s</string>
 
     <!-- Action bar part -->
 

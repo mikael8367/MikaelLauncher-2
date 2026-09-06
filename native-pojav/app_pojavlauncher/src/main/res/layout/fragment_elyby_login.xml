@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_app"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="28dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ELY.BY"
+        android:textColor="@color/mikael_accent"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Entrar com sua conta Ely.by"
+        android:textColor="@color/secondary_text"
+        android:textSize="14sp" />
+
+    <EditText
+        android:id="@+id/elyby_username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:hint="E-mail ou usuário"
+        android:inputType="textEmailAddress"
+        android:textColor="@color/primary_text"
+        android:textColorHint="@color/secondary_text" />
+
+    <EditText
+        android:id="@+id/elyby_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Senha"
+        android:textColor="@color/primary_text"
+        android:textColorHint="@color/secondary_text" />
+
+    <EditText
+        android:id="@+id/elyby_two_factor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Código 2FA (opcional)"
+        android:inputType="number"
+        android:textColor="@color/primary_text"
+        android:textColorHint="@color/secondary_text" />
+
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/elyby_login_button"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="22dp"
+        android:background="@drawable/mikael_play_button"
+        android:text="ENTRAR COM ELY.BY"
+        android:textColor="#11120D"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Sua senha é usada somente na conexão HTTPS e não é salva pelo MikaelLauncher."
+        android:textColor="@color/secondary_text"
+        android:textSize="12sp" />
+</LinearLayout>

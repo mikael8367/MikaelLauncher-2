@@ -27,12 +27,12 @@
         android:allowNativeHeapPointerTagging="false"
         android:appCategory="game"
         android:hasFragileUserData="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/mikael_launcher_icon"
         android:isGame="true"
         android:label="@string/app_name"
         android:process=":launcher"
         android:resizeableActivity="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/mikael_launcher_icon"
         android:theme="@style/AppTheme">
         <activity
             android:name=".MissingStorageActivity"
