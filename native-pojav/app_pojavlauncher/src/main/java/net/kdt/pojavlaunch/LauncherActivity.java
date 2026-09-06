@@ -125,6 +125,15 @@ public class LauncherActivity extends BaseActivity {
             ExtraCore.setValue(ExtraConstants.SELECT_AUTH_METHOD, true);
             return false;
         }
+        // The spinner and PojavProfile use separate persistence layers. Always sync them
+        // before download/launch, otherwise a stale local account can shadow a logged-in one.
+        net.kdt.pojavlaunch.value.MinecraftAccount selectedAccount = mAccountSpinner.getSelectedAccount();
+        PojavProfile.setCurrentProfile(this, selectedAccount.username);
+        if (selectedAccount.isLocal()) {
+            Toast.makeText(this, R.string.login_required_for_download, Toast.LENGTH_LONG).show();
+            ExtraCore.setValue(ExtraConstants.SELECT_AUTH_METHOD, true);
+            return false;
+        }
         String normalizedVersionId = AsyncMinecraftDownloader.normalizeVersionId(prof.lastVersionId);
         JMinecraftVersionList.Version mcVersion = AsyncMinecraftDownloader.getListedVersion(normalizedVersionId);
 

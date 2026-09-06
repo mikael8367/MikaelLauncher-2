@@ -92,16 +92,20 @@ public class mcAccountSpinner extends AppCompatSpinner implements AdapterView.On
     private final DoneListener mDoneListener = account -> {
         Toast.makeText(getContext(), R.string.main_login_done, Toast.LENGTH_SHORT).show();
 
-        // Check if the account being added is not one that is already existing
-        // Like login twice on the same mc account...
+        // A refresh can return an account that already exists. Keep the new token/profile
+        // in memory and select it; otherwise the downloader may keep using a stale local account.
+        boolean alreadyExists = false;
         for(String mcAccountName : mAccountList){
-            if(mcAccountName.equals(account.username)) return;
+            if(mcAccountName.equals(account.username)) {
+                alreadyExists = true;
+                break;
+            }
         }
-
         mSelectecAccount = account;
+        PojavProfile.setCurrentProfile(getContext(), account.username);
         invalidate();
-        mAccountList.add(account.username);
-        reloadAccounts(false, mAccountList.size() -1);
+        if(!alreadyExists) mAccountList.add(account.username);
+        reloadAccounts(false, mAccountList.indexOf(account.username));
     };
 
     private final ErrorListener mErrorListener = errorMessage -> {

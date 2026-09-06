@@ -14,6 +14,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import net.kdt.pojavlaunch.R;
+import net.kdt.pojavlaunch.PojavProfile;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.value.MinecraftAccount;
 
@@ -74,6 +75,7 @@ public class ElybyLoginFragment extends Fragment {
                 account.clientToken = json.has("clientToken") ? json.get("clientToken").getAsString() : UUID.randomUUID().toString();
                 account.isMicrosoft = false;
                 account.save();
+                PojavProfile.setCurrentProfile(requireContext(), account.username);
                 requireActivity().runOnUiThread(() -> {
                     Toast.makeText(requireContext(), R.string.elyby_login_success, Toast.LENGTH_LONG).show();
                     Tools.swapFragment(requireActivity(), MainMenuFragment.class, MainMenuFragment.TAG, null);

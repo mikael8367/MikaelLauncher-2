@@ -24,6 +24,7 @@
     <string name="mikael_profile_turbo">Turbo — máximo FPS</string>
     <string name="mikael_profile_balanced">Equilibrado</string>
     <string name="mikael_profile_eco">Economia — menos calor</string>
+    <string name="login_required_for_download">A conta selecionada não está autenticada. Entre novamente com Microsoft ou Ely.by.</string>
 
     <!-- Action bar part -->
 
