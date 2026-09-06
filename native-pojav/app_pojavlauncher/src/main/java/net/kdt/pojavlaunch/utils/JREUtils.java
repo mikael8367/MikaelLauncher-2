@@ -204,6 +204,14 @@ public class JREUtils {
 
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("MESA_SHADER_CACHE_MAX_SIZE", "512M");
+        if ("turbo".equals(LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"))) {
+            // These are ignored by renderers that do not support them and reduce driver
+            // overhead on Mesa/Zink-compatible devices.
+            envMap.put("MESA_SHADER_CACHE_DISABLE", "false");
+            envMap.put("MESA_SHADER_CACHE_ZSTD", "true");
+            envMap.put("MESA_NO_ERROR", "1");
+            envMap.put("mesa_glthread", "true");
+        }
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
