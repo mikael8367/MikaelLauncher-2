@@ -9,13 +9,14 @@
     android:orientation="vertical"
     android:layout_height="wrap_content"
     android:layout_gravity="center_vertical"
-    android:background="@drawable/background_control_editor">
+    android:background="@drawable/mikael_side_panel">
     <TextView
         android:id="@+id/side_dialog_title_textview"
         style="@style/TextAppearance.AppCompat.Large"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="@dimen/padding_moderate"
+        android:textColor="@color/mikael_lime"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
 
@@ -51,6 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:visibility="gone"
+            android:textColor="@color/mikael_accent"
 
             tools:visibility="visible"
             tools:text="Cancel"
@@ -63,6 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:visibility="gone"
+            android:textColor="@color/mikael_lime"
 
             tools:text="Confirm"
             tools:visibility="visible"
