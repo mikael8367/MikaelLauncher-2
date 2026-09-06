@@ -31,7 +31,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
 
     private SharedPreferences.Editor mEditor;
     @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch mGyroSwitch, mGyroXSwitch, mGyroYSwitch, mGestureSwitch;
+    private Switch mGyroSwitch, mGyroXSwitch, mGyroYSwitch, mGestureSwitch, mUncappedFpsSwitch;
     private CustomSeekbar mGyroSensitivityBar, mMouseSpeedBar, mGestureDelayBar, mResolutionBar;
     private TextView mGyroSensitivityText, mGyroSensitivityDisplayText, mMouseSpeedText, mGestureDelayText, mGestureDelayDisplayText, mResolutionText;
 
@@ -65,6 +65,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGyroXSwitch = mDialogContent.findViewById(R.id.checkboxGyroX);
         mGyroYSwitch = mDialogContent.findViewById(R.id.checkboxGyroY);
         mGestureSwitch = mDialogContent.findViewById(R.id.checkboxGesture);
+        mUncappedFpsSwitch = mDialogContent.findViewById(R.id.checkboxUncappedFps);
 
         mGyroSensitivityBar = mDialogContent.findViewById(R.id.editGyro_seekbar);
         mMouseSpeedBar = mDialogContent.findViewById(R.id.editMouseSpeed_seekbar);
@@ -96,6 +97,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGyroXSwitch.setChecked(mOriginalGyroXEnabled);
         mGyroYSwitch.setChecked(mOriginalGyroYEnabled);
         mGestureSwitch.setChecked(mOriginalGestureDisabled);
+        mUncappedFpsSwitch.setChecked(LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false));
 
         mGyroSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             PREF_ENABLE_GYRO = isChecked;
@@ -120,6 +122,11 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
             PREF_DISABLE_GESTURES = isChecked;
             updateGestureVisibility(isChecked);
             mEditor.putBoolean("disableGestures", isChecked);
+        });
+
+        mUncappedFpsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            mEditor.putBoolean("uncapped_fps", isChecked);
+            if (isChecked) mEditor.putBoolean("force_vsync", false);
         });
 
         mGyroSensitivityBar.setOnSeekBarChangeListener((SimpleSeekBarListener) (seekBar, progress, fromUser) -> {
@@ -202,6 +209,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGyroXSwitch.setOnCheckedChangeListener(null);
         mGyroYSwitch.setOnCheckedChangeListener(null);
         mGestureSwitch.setOnCheckedChangeListener(null);
+        mUncappedFpsSwitch.setOnCheckedChangeListener(null);
 
         mGyroSensitivityBar.setOnSeekBarChangeListener(null);
         mMouseSpeedBar.setOnSeekBarChangeListener(null);

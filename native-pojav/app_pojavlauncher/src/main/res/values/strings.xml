@@ -24,6 +24,7 @@
     <string name="mikael_profile_turbo">Turbo — máximo FPS</string>
     <string name="mikael_profile_balanced">Equilibrado</string>
     <string name="mikael_profile_eco">Economia — menos calor</string>
+    <string name="mikael_quick_fps">FPS sem limite (próximo lançamento)</string>
     <string name="login_required_for_download">A conta selecionada não está autenticada. Entre novamente com Microsoft ou Ely.by.</string>
     <string name="mikael_runtime_installing">Preparando Java 8, 17 e 21. Aguarde a instalação terminar.</string>
     <string name="mikael_runtime_install_failed">Não foi possível instalar as runtimes Java. Verifique o armazenamento e tente novamente.</string>
