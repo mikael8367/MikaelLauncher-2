@@ -22,6 +22,16 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         addPreferencesFromResource(R.xml.pref_video);
         int resolution = (int) (LauncherPreferences.PREF_SCALE_FACTOR * 100);
 
+        ListPreference performanceProfile = requirePreference("performance_profile", ListPreference.class);
+        performanceProfile.setSummaryProvider(preference -> {
+            CharSequence entry = ((ListPreference) preference).getEntry();
+            return entry == null ? getString(R.string.mikael_profile_balanced) : entry;
+        });
+        performanceProfile.setOnPreferenceChangeListener((preference, newValue) -> {
+            applyPerformanceProfile(String.valueOf(newValue));
+            return true;
+        });
+
         //Disable notch checking behavior on android 8.1 and below.
         requirePreference("ignoreNotch").setVisible(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && LauncherPreferences.PREF_NOTCH_SIZE > 0);
 
@@ -44,6 +54,10 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
 
         requirePreference("alternate_surface", SwitchPreferenceCompat.class).setChecked(LauncherPreferences.PREF_USE_ALTERNATE_SURFACE);
         requirePreference("force_vsync", SwitchPreferenceCompat.class).setChecked(LauncherPreferences.PREF_FORCE_VSYNC);
+        requirePreference("uncapped_fps", SwitchPreferenceCompat.class)
+                .setChecked(LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false));
+        requirePreference("bigCoreAffinity", SwitchPreferenceCompat.class)
+                .setChecked(LauncherPreferences.PREF_BIG_CORE_AFFINITY);
 
         ListPreference rendererListPreference = requirePreference("renderer",
                 ListPreference.class);
@@ -57,7 +71,40 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences p, String s) {
         super.onSharedPreferenceChanged(p, s);
+        if ("force_vsync".equals(s)) {
+            LauncherPreferences.PREF_FORCE_VSYNC = p.getBoolean(s, false);
+            if (LauncherPreferences.PREF_FORCE_VSYNC) p.edit().putBoolean("uncapped_fps", false).apply();
+        } else if ("uncapped_fps".equals(s)) {
+            if (p.getBoolean(s, false)) p.edit().putBoolean("force_vsync", false).apply();
+        } else if ("sustainedPerformance".equals(s)) {
+            LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = p.getBoolean(s, false);
+        } else if ("bigCoreAffinity".equals(s)) {
+            LauncherPreferences.PREF_BIG_CORE_AFFINITY = p.getBoolean(s, false);
+        } else if ("alternate_surface".equals(s)) {
+            LauncherPreferences.PREF_USE_ALTERNATE_SURFACE = p.getBoolean(s, true);
+        }
         computeVisibility();
+    }
+
+    private void applyPerformanceProfile(String profile) {
+        boolean turbo = "turbo".equals(profile);
+        boolean eco = "eco".equals(profile);
+        LauncherPreferences.DEFAULT_PREF.edit()
+                .putBoolean("uncapped_fps", turbo)
+                .putBoolean("force_vsync", eco)
+                .putBoolean("sustainedPerformance", turbo)
+                .putBoolean("bigCoreAffinity", turbo)
+                .putBoolean("alternate_surface", !eco)
+                .apply();
+        LauncherPreferences.PREF_FORCE_VSYNC = eco;
+        LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = turbo;
+        LauncherPreferences.PREF_BIG_CORE_AFFINITY = turbo;
+        LauncherPreferences.PREF_USE_ALTERNATE_SURFACE = !eco;
+        requirePreference("uncapped_fps", SwitchPreferenceCompat.class).setChecked(turbo);
+        requirePreference("force_vsync", SwitchPreferenceCompat.class).setChecked(eco);
+        requirePreference("sustainedPerformance", SwitchPreference.class).setChecked(turbo);
+        requirePreference("bigCoreAffinity", SwitchPreferenceCompat.class).setChecked(turbo);
+        requirePreference("alternate_surface", SwitchPreferenceCompat.class).setChecked(!eco);
     }
 
     private void computeVisibility(){

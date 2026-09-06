@@ -6,6 +6,13 @@
 
     <PreferenceCategory android:title="@string/preference_category_video" >
         <androidx.preference.ListPreference
+            android:key="performance_profile"
+            android:defaultValue="balanced"
+            android:entries="@array/mikael_performance_profile_entries"
+            android:entryValues="@array/mikael_performance_profile_values"
+            android:title="@string/mikael_performance_profile_title"
+            android:summary="@string/mikael_performance_profile_summary" />
+        <androidx.preference.ListPreference
             android:title="@string/mcl_setting_category_renderer"
             android:key="renderer"
             android:defaultValue="opengles2"
