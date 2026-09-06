@@ -224,7 +224,9 @@ struct ANativeWindow_real
 // endregion
 
 void setNativeWindowSwapInterval(struct ANativeWindow* nativeWindow, int swapInterval) {
-    if(!getenv("POJAV_VSYNC_IN_ZINK")) {
+    if(getenv("POJAV_UNCAPPED_FPS")) {
+        swapInterval = 0;
+    } else if(!getenv("POJAV_VSYNC_IN_ZINK")) {
         return;
     }
     struct ANativeWindow_real* nativeWindowReal = (struct ANativeWindow_real*) nativeWindow;
