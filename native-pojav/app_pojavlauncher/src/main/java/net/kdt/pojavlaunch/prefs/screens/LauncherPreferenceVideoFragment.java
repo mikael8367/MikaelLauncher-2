@@ -92,17 +92,17 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         LauncherPreferences.DEFAULT_PREF.edit()
                 .putBoolean("uncapped_fps", turbo)
                 .putBoolean("force_vsync", eco)
-                .putBoolean("sustainedPerformance", turbo)
+                .putBoolean("sustainedPerformance", false)
                 .putBoolean("bigCoreAffinity", turbo)
                 .putBoolean("alternate_surface", !eco)
                 .apply();
         LauncherPreferences.PREF_FORCE_VSYNC = eco;
-        LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = turbo;
+        LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = false;
         LauncherPreferences.PREF_BIG_CORE_AFFINITY = turbo;
         LauncherPreferences.PREF_USE_ALTERNATE_SURFACE = !eco;
         requirePreference("uncapped_fps", SwitchPreferenceCompat.class).setChecked(turbo);
         requirePreference("force_vsync", SwitchPreferenceCompat.class).setChecked(eco);
-        requirePreference("sustainedPerformance", SwitchPreference.class).setChecked(turbo);
+        requirePreference("sustainedPerformance", SwitchPreference.class).setChecked(false);
         requirePreference("bigCoreAffinity", SwitchPreferenceCompat.class).setChecked(turbo);
         requirePreference("alternate_surface", SwitchPreferenceCompat.class).setChecked(!eco);
     }

@@ -150,7 +150,9 @@ public class LauncherPreferences {
         if (deviceRam < 3064) return 936;
         if (deviceRam < 4096) return 1144;
         if (deviceRam < 6144) return 1536;
-        return 2048; //Default RAM allocation for 64 bits
+        if (deviceRam < 8192) return 2048;
+        if (deviceRam < 12288) return 3072;
+        return 4096; // Extra headroom for modded Minecraft on high-memory 64-bit devices
     }
 
     /// Find a correct resolution for the device
