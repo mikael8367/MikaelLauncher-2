@@ -46,6 +46,11 @@ const config: ExpoConfig = {
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
   userInterfaceStyle: "automatic",
+  extra: {
+    eas: {
+      projectId: "2a09c9e6-dbd0-4039-845c-535527d6567b",
+    },
+  },
   newArchEnabled: true,
   ios: {
     supportsTablet: true,
