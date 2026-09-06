@@ -345,6 +345,9 @@ public final class Tools {
             javaArgList.add("-XX:InitiatingHeapOccupancyPercent=20");
             javaArgList.add("-XX:G1ReservePercent=10");
             javaArgList.add("-XX:+TieredCompilation");
+            javaArgList.add("-XX:+UseStringDeduplication");
+            javaArgList.add("-XX:MaxTenuringThreshold=1");
+            javaArgList.add("-XX:G1RSetUpdatingPauseTimePercent=5");
         }
         javaArgList.add("-cp");
         javaArgList.add(launchClassPath + ":" + getLWJGL3ClassPath());
