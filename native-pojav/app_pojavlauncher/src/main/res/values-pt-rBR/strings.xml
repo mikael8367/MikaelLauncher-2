@@ -22,6 +22,7 @@
     <!-- Toast messages -->
     <string name="toast_permission_denied">É necessário conceder permissão para ler/modificar armazenamento!</string>
     <string name="toast_optifine_success">Instalação concluída</string>
+    <string name="create_bta_profile">Criar perfil Better Than Adventure!</string>
     <!--
     <string name="toast_3">Exit</string>
     -->
