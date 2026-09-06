@@ -203,6 +203,7 @@ public class JREUtils {
         }
 
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
+        envMap.put("MESA_SHADER_CACHE_MAX_SIZE", "512M");
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
@@ -308,6 +309,15 @@ public class JREUtils {
         //Add automatically generated args
         userArgs.add("-Xms" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
         userArgs.add("-Xmx" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
+        if ("turbo".equals(LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"))) {
+            // Supported by the bundled Java 8, 17 and 21 runtimes. Keep these flags out of
+            // Balanced/Eco because G1 can cost more CPU on low-memory devices.
+            userArgs.add("-XX:+UseG1GC");
+            userArgs.add("-XX:MaxGCPauseMillis=50");
+            userArgs.add("-XX:+ParallelRefProcEnabled");
+            userArgs.add("-XX:+DisableExplicitGC");
+            userArgs.add("-XX:+UseStringDeduplication");
+        }
         if(LOCAL_RENDERER != null) userArgs.add("-Dorg.lwjgl.opengl.libname=" + graphicsLib);
 
         // Force LWJGL to use the Freetype library intended for it, instead of using the one

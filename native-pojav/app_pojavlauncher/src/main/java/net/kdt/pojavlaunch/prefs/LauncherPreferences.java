@@ -110,6 +110,18 @@ public class LauncherPreferences {
         PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = DEFAULT_PREF.getBoolean(PREF_KEY_SKIP_NOTIFICATION_CHECK, false);
         PREF_VSYNC_IN_ZINK = DEFAULT_PREF.getBoolean("vsync_in_zink", true);
 
+        if ("turbo".equals(DEFAULT_PREF.getString("performance_profile", "balanced"))) {
+            PREF_SUSTAINED_PERFORMANCE = false;
+            PREF_FORCE_VSYNC = false;
+            PREF_BIG_CORE_AFFINITY = true;
+            DEFAULT_PREF.edit()
+                    .putBoolean("sustainedPerformance", false)
+                    .putBoolean("force_vsync", false)
+                    .putBoolean("bigCoreAffinity", true)
+                    .putBoolean("uncapped_fps", true)
+                    .apply();
+        }
+
         String argLwjglLibname = "-Dorg.lwjgl.opengl.libname=";
         for (String arg : JREUtils.parseJavaArguments(PREF_CUSTOM_JAVA_ARGS)) {
             if (arg.startsWith(argLwjglLibname)) {
