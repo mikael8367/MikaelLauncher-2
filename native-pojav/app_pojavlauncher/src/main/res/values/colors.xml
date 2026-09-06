@@ -3,13 +3,15 @@
     <color name="control_button_color">#4CC4C4C4</color>
     <color name="control_button_pressed_color">#4D000000</color>
 
-    <color name="minebutton_color">#57CC33</color>
-    <color name="background_app">#181818</color>
-    <color name="divider">@color/background_overlay</color>
-    <color name="background_overlay">#464646</color>
-    <color name="background_status_bar">#242424</color>
-    <color name="background_bottom_bar">#232323</color>
+    <color name="minebutton_color">#C7F35B</color>
+    <color name="background_app">#0D0D14</color>
+    <color name="divider">#2D2D40</color>
+    <color name="background_overlay">#20202F</color>
+    <color name="background_status_bar">#0D0D14</color>
+    <color name="background_bottom_bar">#171723</color>
 
-    <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#B2B2B2</color>
+    <color name="primary_text">#F6F4FB</color>
+    <color name="secondary_text">#9695A6</color>
+    <color name="mikael_accent">#9B7BFF</color>
+    <color name="mikael_lime">#C7F35B</color>
 </resources>
