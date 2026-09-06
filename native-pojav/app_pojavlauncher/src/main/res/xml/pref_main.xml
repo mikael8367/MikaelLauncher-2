@@ -60,6 +60,29 @@
         android:summary="@string/preference_force_english_description"
         />
 
+    <PreferenceCategory android:title="@string/mikael_preference_category_experience">
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="launcher_animations"
+            android:title="@string/mikael_preference_animations"
+            android:summary="@string/mikael_preference_animations_summary" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="launcher_sounds"
+            android:title="@string/mikael_preference_sounds"
+            android:summary="@string/mikael_preference_sounds_summary" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="auto_updates"
+            android:title="@string/mikael_preference_auto_updates"
+            android:summary="@string/mikael_preference_auto_updates_summary" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="wifi_only"
+            android:title="@string/mikael_preference_wifi_only"
+            android:summary="@string/mikael_preference_wifi_only_summary" />
+    </PreferenceCategory>
+
     <Preference
         android:title="@string/preference_ask_for_notification_title"
         android:summary="@string/preference_ask_for_notification_description"

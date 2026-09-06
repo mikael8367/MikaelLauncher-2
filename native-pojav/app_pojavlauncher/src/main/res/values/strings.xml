@@ -6,6 +6,15 @@
     <string name="elyby_missing_credentials">Informe usuário e senha do Ely.by.</string>
     <string name="elyby_login_success">Conta Ely.by adicionada.</string>
     <string name="elyby_login_error">Falha no login Ely.by: %s</string>
+    <string name="mikael_preference_category_experience">Experiência MikaelLauncher</string>
+    <string name="mikael_preference_animations">Animações da interface</string>
+    <string name="mikael_preference_animations_summary">Usar transições suaves no launcher.</string>
+    <string name="mikael_preference_sounds">Sons de interação</string>
+    <string name="mikael_preference_sounds_summary">Reproduzir feedback sonoro nos botões.</string>
+    <string name="mikael_preference_auto_updates">Atualizar lista automaticamente</string>
+    <string name="mikael_preference_auto_updates_summary">Buscar novas versões e modloaders ao abrir o launcher.</string>
+    <string name="mikael_preference_wifi_only">Baixar somente no Wi-Fi</string>
+    <string name="mikael_preference_wifi_only_summary">Evitar downloads grandes usando dados móveis.</string>
 
     <!-- Action bar part -->
 
