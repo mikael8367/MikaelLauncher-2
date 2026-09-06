@@ -198,6 +198,9 @@ public class JREUtils {
         envMap.put("LIBGL_ES", (String) ExtraCore.getValue(ExtraConstants.OPEN_GL_VERSION));
 
         envMap.put("FORCE_VSYNC", String.valueOf(LauncherPreferences.PREF_FORCE_VSYNC));
+        if (LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false)) {
+            envMap.put("POJAV_UNCAPPED_FPS", "1");
+        }
 
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
         envMap.put("force_glsl_extensions_warn", "true");

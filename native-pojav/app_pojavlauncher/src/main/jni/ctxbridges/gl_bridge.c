@@ -181,6 +181,7 @@ void gl_setup_window() {
 
 void gl_swap_interval(int swapInterval) {
     if(pojav_environ->force_vsync) swapInterval = 1;
+    else if(getenv("POJAV_UNCAPPED_FPS")) swapInterval = 0;
 
     eglSwapInterval_p(g_EglDisplay, swapInterval);
 }

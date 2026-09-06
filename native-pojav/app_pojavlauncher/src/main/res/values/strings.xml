@@ -15,6 +15,10 @@
     <string name="mikael_preference_auto_updates_summary">Buscar novas versões e modloaders ao abrir o launcher.</string>
     <string name="mikael_preference_wifi_only">Baixar somente no Wi-Fi</string>
     <string name="mikael_preference_wifi_only_summary">Evitar downloads grandes usando dados móveis.</string>
+    <string name="mikael_uncapped_fps_title">FPS sem limite</string>
+    <string name="mikael_uncapped_fps_summary">Desativa o intervalo de troca do EGL; pode aumentar FPS, temperatura e consumo.</string>
+    <string name="mikael_performance_mode_title">Modo desempenho máximo</string>
+    <string name="mikael_performance_mode_summary">Prioriza núcleos grandes do aparelho para o Minecraft; usa mais bateria.</string>
 
     <!-- Action bar part -->
 
