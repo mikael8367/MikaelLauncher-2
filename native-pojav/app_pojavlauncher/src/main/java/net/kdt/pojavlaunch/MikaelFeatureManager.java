@@ -278,6 +278,23 @@ public final class MikaelFeatureManager {
             json.put("abis", new org.json.JSONArray(java.util.Arrays.asList(Build.SUPPORTED_ABIS)));
             json.put("processors", Runtime.getRuntime().availableProcessors());
             json.put("physical_memory_mb", Tools.getTotalDeviceMemory(context));
+            ActivityManager.MemoryInfo memory = new ActivityManager.MemoryInfo();
+            ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager != null) {
+                manager.getMemoryInfo(memory);
+                json.put("available_memory_mb", memory.availMem / 1024 / 1024);
+                json.put("low_memory", memory.lowMemory);
+                json.put("memory_threshold_mb", memory.threshold / 1024 / 1024);
+            }
+            android.content.Intent battery = context.registerReceiver(null,
+                    new android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED));
+            if (battery != null) {
+                json.put("battery_percent", battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1));
+                json.put("battery_scale", battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1));
+                json.put("battery_temperature_c", battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1) / 10.0);
+                json.put("battery_status", battery.getIntExtra(BatteryManager.EXTRA_STATUS, -1));
+                json.put("battery_plugged", battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1));
+            }
             json.put("free_storage_mb", getFreeStorageMb(gameDir));
             json.put("log_size_mb", getLogSizeMb(gameDir));
             json.put("crash_reports", countCrashReports(gameDir));
