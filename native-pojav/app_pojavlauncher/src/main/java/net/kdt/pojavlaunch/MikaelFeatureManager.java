@@ -159,11 +159,13 @@ public final class MikaelFeatureManager {
                 String log = Tools.read(latestLog);
                 int errors = count(log, "[ERROR]") + count(log, " ERROR ");
                 int warnings = count(log, "[WARN]") + count(log, " WARN ");
+                String rootCause = findRootCause(log);
                 result.append("latest.log: ").append(errors).append(" erros, ").append(warnings).append(" avisos\n");
-                if (containsAny(log, "OutOfMemoryError", "GC overhead limit exceeded")) result.append("• Memória Java insuficiente ou pressão excessiva do GC.\n");
-                if (containsAny(log, "MixinApplyError", "ModLoadingException", "NoClassDefFoundError")) result.append("• Mod incompatível, dependência ausente ou versão incorreta.\n");
-                if (containsAny(log, "GLFW", "OpenGL", "EGL", "ZINK")) result.append("• Problema potencial no renderizador gráfico.\n");
-                if (containsAny(log, "Connection refused", "SocketTimeoutException", "HTTP 5")) result.append("• Falha de rede ou servidor indisponível durante download.\n");
+                if (rootCause != null) result.append("Causa raiz encontrada (confiança 95%): ").append(rootCause).append('\n');
+                if (containsAny(log, "OutOfMemoryError", "GC overhead limit exceeded")) result.append("• Memória Java insuficiente ou pressão excessiva do GC (confiança 90%).\n");
+                if (containsAny(log, "MixinApplyError", "ModLoadingException", "NoClassDefFoundError")) result.append("• Mod incompatível, dependência ausente ou versão incorreta (confiança 90%).\n");
+                if (containsAny(log, "GLFW", "OpenGL", "EGL", "ZINK")) result.append("• Problema potencial no renderizador gráfico (confiança 75%; verifique a linha de causa raiz).\n");
+                if (containsAny(log, "Connection refused", "SocketTimeoutException", "HTTP 5")) result.append("• Falha de rede ou servidor indisponível durante download (confiança 85%).\n");
                 if (errors == 0 && warnings == 0) result.append("• Nenhum erro relevante encontrado no log.\n");
             } catch (IOException e) {
                 result.append("Falha ao ler latest.log: ").append(e.getMessage()).append('\n');
@@ -184,6 +186,17 @@ public final class MikaelFeatureManager {
         return false;
     }
 
+    private static String findRootCause(String text) {
+        String[] lines = text.split("\\n");
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.startsWith("Caused by:") || trimmed.contains("FATAL") || trimmed.contains("ERROR")) {
+                if (trimmed.length() > 20) return trimmed.length() > 220 ? trimmed.substring(0, 220) + "…" : trimmed;
+            }
+        }
+        return null;
+    }
+
     public static void writeCompatibilityReport(Context context, File gameDir, String versionId) {
         File report = new File(gameDir, "mikael-compatibility.txt");
         try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) {
@@ -198,6 +211,8 @@ public final class MikaelFeatureManager {
             out.println("Java=" + LauncherPreferences.PREF_DEFAULT_RUNTIME);
             out.println("Renderer=" + LauncherPreferences.PREF_RENDERER);
             out.println("Turbo=" + LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"));
+            Tools.RenderersList renderers = Tools.getCompatibleRenderers(context);
+            out.println("CompatibleRenderers=" + renderers.rendererIds);
         } catch (Exception e) {
             Log.w(TAG, "Could not write compatibility report", e);
         }
