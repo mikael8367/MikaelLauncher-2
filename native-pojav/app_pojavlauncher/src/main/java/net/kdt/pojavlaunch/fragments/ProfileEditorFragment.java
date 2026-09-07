@@ -251,7 +251,7 @@ public class ProfileEditorFragment extends Fragment implements CropperUtils.Crop
         Bundle args = new Bundle();
         args.putString("curseforge_target_game_dir", profileDir.getAbsolutePath());
         args.putString("curseforge_mc_version", mTempProfile.lastVersionId);
-        Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, args);
+        Tools.swapFragment(requireActivity(), ModManagerFragment.class, ModManagerFragment.TAG, args);
     }
 
     private void save(){
