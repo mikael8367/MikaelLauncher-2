@@ -400,6 +400,9 @@ public final class MikaelFeatureManager {
             json.put("latest_log_fatal_count", logSignals[3]);
             json.put("latest_log_severity", logSignals[3] > 0 ? "critical" : (logSignals[0] > 0 || logSignals[1] > 0 ? "warning" : "normal"));
             json.put("latest_log_error_signatures", logSignatures(new File(gameDir, "logs/latest.log")));
+            json.put("stack_trace_count", countStackTraces(new File(gameDir, "logs/latest.log")));
+            json.put("native_crash_signal_count", countNativeCrashSignals(new File(gameDir, "logs/latest.log")));
+            json.put("startup_failure_signals", startupFailureSignals(new File(gameDir, "logs/latest.log")));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -709,6 +712,42 @@ public final class MikaelFeatureManager {
                 .replaceAll("(?i)(token|secret|password|authorization|api[_-]?key)=\\S+", "$1=<redacted>")
                 .replaceAll("/data/user/\\d+/[^ ]+", "<app-path>")
                 .replaceAll("/storage/emulated/\\d+/[^ ]+", "<storage-path>");
+    }
+
+    private static int countStackTraces(File file) {
+        int count = 0;
+        if (!file.isFile()) return 0;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) if (line.trim().startsWith("at ") || line.contains("Caused by:")) count++;
+        } catch (Exception ignored) { }
+        return count;
+    }
+
+    private static int countNativeCrashSignals(File file) {
+        int count = 0;
+        if (!file.isFile()) return 0;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String lower = line.toLowerCase(Locale.US);
+                if (lower.contains("sigsegv") || lower.contains("sigabrt") || lower.contains("libc.so") || lower.contains("fatal signal")) count++;
+            }
+        } catch (Exception ignored) { }
+        return count;
+    }
+
+    private static org.json.JSONArray startupFailureSignals(File file) {
+        org.json.JSONArray result = new org.json.JSONArray();
+        if (!file.isFile()) return result;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null && result.length() < 12) {
+                String lower = line.toLowerCase(Locale.US);
+                if (lower.contains("failed to start") || lower.contains("could not create") || lower.contains("unable to launch") || lower.contains("no such file")) result.put(redactDiagnosticText(line.trim()));
+            }
+        } catch (Exception ignored) { }
+        return result;
     }
 
     private static long directoryLatestModified(File directory) {
