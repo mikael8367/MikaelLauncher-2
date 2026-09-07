@@ -410,6 +410,7 @@ public final class MikaelFeatureManager {
             json.put("newest_crash_modified", newestCrash == null ? 0 : newestCrash.lastModified());
             json.put("hours_since_newest_crash", newestCrash == null ? -1 : Math.max(0, (System.currentTimeMillis() - newestCrash.lastModified()) / 3600000));
             json.put("version_manifest_summary", versionManifestSummary(new File(gameDir, "versions")));
+            json.put("missing_inherited_versions", missingInheritedVersions(new File(gameDir, "versions")));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -787,6 +788,23 @@ public final class MikaelFeatureManager {
             while (result.length() < maxChars && (read = reader.read(buffer, 0, Math.min(buffer.length, maxChars - result.length()))) != -1) result.append(buffer, 0, read);
         }
         return result.toString();
+    }
+
+    private static org.json.JSONArray missingInheritedVersions(File versions) {
+        org.json.JSONArray result = new org.json.JSONArray();
+        java.util.HashSet<String> ids = new java.util.HashSet<>();
+        File[] dirs = versions.listFiles(File::isDirectory);
+        if (dirs == null) return result;
+        for (File dir : dirs) ids.add(dir.getName());
+        for (File dir : dirs) {
+            File manifest = new File(dir, dir.getName() + ".json");
+            if (!manifest.isFile()) continue;
+            try {
+                String parent = new org.json.JSONObject(readLimited(manifest, 500_000)).optString("inheritsFrom", "");
+                if (!parent.isEmpty() && !ids.contains(parent) && result.length() < 30) result.put(redactDiagnosticText(dir.getName() + " -> " + parent));
+            } catch (Exception ignored) { }
+        }
+        return result;
     }
 
     private static long directoryLatestModified(File directory) {
