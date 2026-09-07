@@ -438,6 +438,12 @@ public final class MikaelFeatureManager {
             json.put("elyby_provider_configured", hasProviderConfig(context, "elyby"));
             json.put("auth_cache_exists", new File(gameDir, "authlib-injector.jar").isFile());
             json.put("session_cache_present", new File(gameDir, "sessions").isDirectory());
+            json.put("downloads_dir_exists", new File(gameDir, "downloads").isDirectory());
+            json.put("download_temp_count", countTemporaryFiles(new File(gameDir, "downloads")));
+            json.put("download_partial_count", countFilesWithSuffix(new File(gameDir, "downloads"), ".part"));
+            json.put("http_cache_size_mb", directorySizeMb(new File(gameDir, "cache")));
+            json.put("tls_default_protocol", defaultTlsProtocol());
+            json.put("pending_queue_count", countFilesWithName(gameDir, "queue", ""));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -733,6 +739,18 @@ public final class MikaelFeatureManager {
             else if (file.getName().contains(first) && file.getName().contains(second)) count++;
         }
         return count;
+    }
+
+    private static int countFilesWithSuffix(File root, String suffix) {
+        int count = 0; File[] files = root.listFiles();
+        if (files == null) return 0;
+        for (File file : files) count += file.isDirectory() ? countFilesWithSuffix(file, suffix) : (file.getName().endsWith(suffix) ? 1 : 0);
+        return count;
+    }
+
+    private static String defaultTlsProtocol() {
+        try { return javax.net.ssl.SSLContext.getDefault().getProtocol(); }
+        catch (Exception e) { return "unavailable"; }
     }
 
     private static String findRootCause(String text) {
