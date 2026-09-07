@@ -50,6 +50,7 @@ import fr.spse.gamepad_remapper.RemapperView;
  * Class dealing with showing minecraft surface and taking inputs to dispatch them to minecraft
  */
 public class MinecraftGLSurface extends View implements GrabListener, DirectGamepadEnableHandler {
+    private static FpsOverlayView sFpsOverlay;
     /* Gamepad object for gamepad inputs, instantiated on need */
     private GamepadHandler mGamepadHandler;
     /* The RemapperView.Builder object allows you to set which buttons to remap */
@@ -173,7 +174,24 @@ public class MinecraftGLSurface extends View implements GrabListener, DirectGame
             ((ViewGroup)getParent()).addView(textureView);
         }
 
+        installFpsOverlay();
 
+
+    }
+
+    private void installFpsOverlay() {
+        if (!(getParent() instanceof android.widget.FrameLayout)) return;
+        android.widget.FrameLayout parent = (android.widget.FrameLayout) getParent();
+        sFpsOverlay = new FpsOverlayView(getContext());
+        sFpsOverlay.attachTo(parent);
+        sFpsOverlay.setEnabled(LauncherPreferences.DEFAULT_PREF.getBoolean("show_fps_overlay", false));
+        sFpsOverlay.bringToFront();
+    }
+
+    public static void setFpsOverlayEnabled(boolean enabled) {
+        if (sFpsOverlay != null) {
+            sFpsOverlay.post(() -> sFpsOverlay.setEnabled(enabled));
+        }
     }
 
     /**

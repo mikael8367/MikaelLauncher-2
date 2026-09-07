@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.kdt.CustomSeekbar;
 
 import net.kdt.pojavlaunch.R;
+import net.kdt.pojavlaunch.MinecraftGLSurface;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.utils.interfaces.SimpleSeekBarListener;
 
@@ -31,7 +32,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
 
     private SharedPreferences.Editor mEditor;
     @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch mGyroSwitch, mGyroXSwitch, mGyroYSwitch, mGestureSwitch, mUncappedFpsSwitch;
+    private Switch mGyroSwitch, mGyroXSwitch, mGyroYSwitch, mGestureSwitch, mUncappedFpsSwitch, mShowFpsSwitch;
     private CustomSeekbar mGyroSensitivityBar, mMouseSpeedBar, mGestureDelayBar, mResolutionBar;
     private TextView mGyroSensitivityText, mGyroSensitivityDisplayText, mMouseSpeedText, mGestureDelayText, mGestureDelayDisplayText, mResolutionText;
 
@@ -66,6 +67,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGyroYSwitch = mDialogContent.findViewById(R.id.checkboxGyroY);
         mGestureSwitch = mDialogContent.findViewById(R.id.checkboxGesture);
         mUncappedFpsSwitch = mDialogContent.findViewById(R.id.checkboxUncappedFps);
+        mShowFpsSwitch = mDialogContent.findViewById(R.id.checkboxShowFps);
 
         mGyroSensitivityBar = mDialogContent.findViewById(R.id.editGyro_seekbar);
         mMouseSpeedBar = mDialogContent.findViewById(R.id.editMouseSpeed_seekbar);
@@ -98,6 +100,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGyroYSwitch.setChecked(mOriginalGyroYEnabled);
         mGestureSwitch.setChecked(mOriginalGestureDisabled);
         mUncappedFpsSwitch.setChecked(LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false));
+        mShowFpsSwitch.setChecked(LauncherPreferences.DEFAULT_PREF.getBoolean("show_fps_overlay", false));
 
         mGyroSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             PREF_ENABLE_GYRO = isChecked;
@@ -127,6 +130,11 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mUncappedFpsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             mEditor.putBoolean("uncapped_fps", isChecked);
             if (isChecked) mEditor.putBoolean("force_vsync", false);
+        });
+
+        mShowFpsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            mEditor.putBoolean("show_fps_overlay", isChecked);
+            MinecraftGLSurface.setFpsOverlayEnabled(isChecked);
         });
 
         mGyroSensitivityBar.setOnSeekBarChangeListener((SimpleSeekBarListener) (seekBar, progress, fromUser) -> {
@@ -210,6 +218,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGyroYSwitch.setOnCheckedChangeListener(null);
         mGestureSwitch.setOnCheckedChangeListener(null);
         mUncappedFpsSwitch.setOnCheckedChangeListener(null);
+        mShowFpsSwitch.setOnCheckedChangeListener(null);
 
         mGyroSensitivityBar.setOnSeekBarChangeListener(null);
         mMouseSpeedBar.setOnSeekBarChangeListener(null);

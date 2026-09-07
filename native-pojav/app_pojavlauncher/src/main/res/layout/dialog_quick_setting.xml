@@ -211,4 +211,13 @@
         app:layout_constraintTop_toBottomOf="@id/editGestureDelay_seekbar"
         tools:ignore="UseSwitchCompatOrMaterialXml" />
 
+    <Switch
+        android:id="@+id/checkboxShowFps"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_36sdp"
+        android:text="@string/mikael_show_fps"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/checkboxUncappedFps"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
