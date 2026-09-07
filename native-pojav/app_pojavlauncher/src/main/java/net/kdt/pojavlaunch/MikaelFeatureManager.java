@@ -270,6 +270,7 @@ public final class MikaelFeatureManager {
             json.put("android", Build.VERSION.RELEASE);
             json.put("api", Build.VERSION.SDK_INT);
             json.put("java_runtime", System.getProperty("java.runtime.version", "unknown"));
+            json.put("java_vendor", System.getProperty("java.vendor", "unknown"));
             json.put("locale", Locale.getDefault().toLanguageTag());
             json.put("timezone", java.util.TimeZone.getDefault().getID());
             json.put("uptime_ms", android.os.SystemClock.elapsedRealtime());
@@ -277,6 +278,7 @@ public final class MikaelFeatureManager {
             json.put("model", Build.MODEL);
             json.put("device", Build.DEVICE);
             json.put("board", Build.BOARD);
+            json.put("fingerprint", Build.FINGERPRINT);
             json.put("kernel", System.getProperty("os.version", "unknown"));
             json.put("abi", Build.SUPPORTED_ABIS.length == 0 ? "unknown" : Build.SUPPORTED_ABIS[0]);
             json.put("abis", new org.json.JSONArray(java.util.Arrays.asList(Build.SUPPORTED_ABIS)));
@@ -366,7 +368,19 @@ public final class MikaelFeatureManager {
             android.view.WindowManager window = (android.view.WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             if (window != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 json.put("refresh_rate_hz", window.getDefaultDisplay().getRefreshRate());
+                json.put("rotation", window.getDefaultDisplay().getRotation());
             }
+            try {
+                json.put("brightness", android.provider.Settings.System.getInt(context.getContentResolver(), android.provider.Settings.System.SCREEN_BRIGHTNESS, -1));
+                json.put("brightness_mode", android.provider.Settings.System.getInt(context.getContentResolver(), android.provider.Settings.System.SCREEN_BRIGHTNESS_MODE, -1));
+            } catch (Exception ignored) { }
+            try {
+                android.content.pm.PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+                json.put("package_version", packageInfo.versionName);
+                json.put("package_version_code", packageInfo.getLongVersionCode());
+            } catch (Exception ignored) { }
+            android.hardware.SensorManager sensors = (android.hardware.SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+            if (sensors != null) json.put("sensor_count", sensors.getSensorList(android.hardware.Sensor.TYPE_ALL).size());
             json.put("compatible_renderers", new org.json.JSONArray(Tools.getCompatibleRenderers(context).rendererIds));
             try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) { out.println(json.toString(2)); }
         } catch (Exception e) { Log.w(TAG, "Could not write JSON diagnostic report", e); }
