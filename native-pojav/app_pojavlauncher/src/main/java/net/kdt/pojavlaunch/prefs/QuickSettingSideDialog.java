@@ -287,7 +287,9 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                 "entityShadows", "fancyGraphics", "smoothLighting", "renderClouds", "useVbo",
                 "mipmapLevels", "enableVsync", "maxFps", "ofAnimatedWater", "ofAnimatedLava",
                 "ofAnimatedFire", "ofAnimatedPortal", "ofAnimatedTerrain", "ofAnimatedTextures",
-                "ofDynamicLights", "ofFogType", "ofSmoothWorld", "ofRenderRegions"
+                "ofAnimatedExplosion", "ofAnimatedSmoke", "ofAnimatedFirework", "ofDynamicLights",
+                "ofFogType", "ofSmoothWorld", "ofRenderRegions", "ofFastMath", "ofAaLevel", "ofAfLevel",
+                "ofChunkUpdates", "ofLazyChunkLoading", "ofPreloadedChunks", "ofChunkLoading"
         };
         final SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
         try {
@@ -316,10 +318,20 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                 MCOptionUtils.set("ofAnimatedPortal", "0");
                 MCOptionUtils.set("ofAnimatedTerrain", "0");
                 MCOptionUtils.set("ofAnimatedTextures", "false");
+                MCOptionUtils.set("ofAnimatedExplosion", "0");
+                MCOptionUtils.set("ofAnimatedSmoke", "0");
+                MCOptionUtils.set("ofAnimatedFirework", "0");
                 MCOptionUtils.set("ofDynamicLights", "3");
                 MCOptionUtils.set("ofFogType", "1");
                 MCOptionUtils.set("ofSmoothWorld", "false");
                 MCOptionUtils.set("ofRenderRegions", "true");
+                MCOptionUtils.set("ofFastMath", "true");
+                MCOptionUtils.set("ofAaLevel", "0");
+                MCOptionUtils.set("ofAfLevel", "1");
+                MCOptionUtils.set("ofChunkUpdates", "1");
+                MCOptionUtils.set("ofLazyChunkLoading", "true");
+                MCOptionUtils.set("ofPreloadedChunks", "0");
+                MCOptionUtils.set("ofChunkLoading", "1");
             } else if (prefs.getBoolean("max_fps_backup_valid", false)) {
                 for (String key : keys) {
                     String value = prefs.getString("max_fps_backup_" + key, null);
