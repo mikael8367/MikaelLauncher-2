@@ -306,6 +306,11 @@ public final class Tools {
         Runtime runtime = MultiRTUtils.forceReread(Tools.pickRuntime(minecraftProfile, versionJavaRequirement));
         JMinecraftVersionList.Version versionInfo = Tools.getVersionInfo(versionId);
 
+        if (runtime.javaVersion == 8 && isMinecraft1122(versionId, versionInfo)
+                && "turbo".equals(LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"))) {
+            applyLegacyTurboPreset(gamedir);
+        }
+
 
         // Pre-process specific files
         disableSplash(gamedir);
@@ -367,6 +372,42 @@ public final class Tools {
         return versionId.contains("1.12.2")
                 || (versionInfo.id != null && versionInfo.id.contains("1.12.2"))
                 || (versionInfo.inheritsFrom != null && versionInfo.inheritsFrom.contains("1.12.2"));
+    }
+
+    private static void applyLegacyTurboPreset(File gameDir) {
+        File marker = new File(gameDir, ".mikael_turbo_1122_applied");
+        if (marker.exists()) return;
+        File options = new File(gameDir, "options.txt");
+        File backup = new File(gameDir, "options.txt.mikael-backup");
+        try {
+            if (options.isFile() && !backup.exists()) {
+                org.apache.commons.io.FileUtils.copyFile(options, backup);
+            }
+            MCOptionUtils.load(gameDir.getAbsolutePath());
+            MCOptionUtils.set("renderDistance", "6");
+            MCOptionUtils.set("particles", "1");
+            MCOptionUtils.set("fancyGraphics", "false");
+            MCOptionUtils.set("smoothLighting", "false");
+            MCOptionUtils.set("entityShadows", "false");
+            MCOptionUtils.set("renderClouds", "false");
+            MCOptionUtils.set("useVbo", "true");
+            MCOptionUtils.set("mipmapLevels", "0");
+            MCOptionUtils.set("enableVsync", "false");
+            MCOptionUtils.set("maxFps", "260");
+            MCOptionUtils.set("ofFogType", "1");
+            MCOptionUtils.set("ofAnimatedWater", "0");
+            MCOptionUtils.set("ofAnimatedLava", "0");
+            MCOptionUtils.set("ofDynamicLights", "3");
+            MCOptionUtils.set("ofFastMath", "true");
+            MCOptionUtils.set("ofSmoothWorld", "false");
+            MCOptionUtils.set("ofAaLevel", "0");
+            MCOptionUtils.set("ofAfLevel", "1");
+            MCOptionUtils.set("ofRenderRegions", "true");
+            MCOptionUtils.save();
+            Tools.write(marker.getAbsolutePath(), "MikaelLauncher Turbo 1.12.2 preset\n");
+        } catch (IOException e) {
+            Log.w(APP_NAME, "Could not apply the reversible 1.12.2 Turbo preset", e);
+        }
     }
 
     public static File getGameDirPath(@NonNull MinecraftProfile minecraftProfile){
