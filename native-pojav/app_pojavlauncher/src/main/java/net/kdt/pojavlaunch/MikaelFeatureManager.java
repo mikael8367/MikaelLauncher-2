@@ -444,6 +444,15 @@ public final class MikaelFeatureManager {
             json.put("http_cache_size_mb", directorySizeMb(new File(gameDir, "cache")));
             json.put("tls_default_protocol", defaultTlsProtocol());
             json.put("pending_queue_count", countFilesWithName(gameDir, "queue", ""));
+            File external = android.os.Environment.getExternalStorageDirectory();
+            json.put("external_storage_exists", external != null && external.isDirectory());
+            json.put("external_storage_readable", external != null && external.canRead());
+            json.put("external_storage_writable", external != null && external.canWrite());
+            json.put("external_storage_total_mb", external == null ? -1 : external.getTotalSpace() / 1024 / 1024);
+            json.put("external_storage_free_mb", external == null ? -1 : external.getUsableSpace() / 1024 / 1024);
+            json.put("storage_state", android.os.Environment.getExternalStorageState());
+            json.put("storage_manager_available", context.getSystemService(Context.STORAGE_SERVICE) != null);
+            json.put("data_dir_size_mb", directorySizeMb(context.getFilesDir()));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
