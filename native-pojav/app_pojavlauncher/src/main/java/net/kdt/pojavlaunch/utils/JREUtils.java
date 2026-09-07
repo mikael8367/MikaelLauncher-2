@@ -201,9 +201,14 @@ public class JREUtils {
         if (LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false)) {
             envMap.put("POJAV_UNCAPPED_FPS", "1");
         }
+        if (LauncherPreferences.DEFAULT_PREF.getBoolean("show_fps_overlay", false)
+                || LauncherPreferences.DEFAULT_PREF.getBoolean("fps_telemetry_enabled", false)) {
+            envMap.put("MIKAEL_FRAME_TELEMETRY", "1");
+        }
 
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
-        envMap.put("MESA_SHADER_CACHE_MAX_SIZE", "512M");
+        boolean turboProfile = "turbo".equals(LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"));
+        envMap.put("MESA_SHADER_CACHE_MAX_SIZE", turboProfile ? "1G" : "512M");
         envMap.put("MESA_SHADER_CACHE_DISABLE", LauncherPreferences.PREF_SHADER_CACHE_ENABLED ? "false" : "true");
         if ("debug".equals(LauncherPreferences.PREF_RENDERER_PROFILE)) {
             envMap.put("LIBGL_DEBUG", "verbose");

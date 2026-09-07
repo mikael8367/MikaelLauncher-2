@@ -13,7 +13,7 @@ import java.util.Locale;
 /** Displays successful Minecraft buffer swaps and frame pacing from the native renderer. */
 public final class FpsOverlayView extends TextView {
     private static final long SAMPLE_WINDOW_MS = 1000L;
-    private static final long POLL_INTERVAL_MS = 100L;
+    private static final long POLL_INTERVAL_MS = 250L;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private boolean mRunning;
     private long mWindowStartMs;

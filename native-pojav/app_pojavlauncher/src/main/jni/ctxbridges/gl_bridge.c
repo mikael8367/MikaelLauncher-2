@@ -25,8 +25,15 @@ static volatile uint64_t g_mikael_presented_frames;
 static volatile uint64_t g_mikael_frame_time_ns;
 static volatile uint64_t g_mikael_worst_frame_time_ns;
 static uint64_t g_mikael_last_frame_ns;
+static bool g_mikael_frame_telemetry_enabled;
+
+static void mikael_fps_init(void) {
+    const char *enabled = getenv("MIKAEL_FRAME_TELEMETRY");
+    g_mikael_frame_telemetry_enabled = enabled != NULL && enabled[0] == '1';
+}
 
 void mikael_fps_record_frame(void) {
+    if (!g_mikael_frame_telemetry_enabled) return;
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     uint64_t timestamp = (uint64_t) now.tv_sec * 1000000000ULL + (uint64_t) now.tv_nsec;
@@ -61,6 +68,7 @@ Java_net_kdt_pojavlaunch_FpsOverlayView_nativeConsumeFrameStats(JNIEnv *env, jcl
 }
 
 bool gl_init() {
+    mikael_fps_init();
     if(!dlsym_EGL()) return false;
     g_EglDisplay = eglGetDisplay_p(EGL_DEFAULT_DISPLAY);
     if (g_EglDisplay == EGL_NO_DISPLAY) {
