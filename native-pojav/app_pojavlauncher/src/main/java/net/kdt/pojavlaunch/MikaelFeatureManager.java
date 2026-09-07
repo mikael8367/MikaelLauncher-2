@@ -404,6 +404,7 @@ public final class MikaelFeatureManager {
             json.put("native_crash_signal_count", countNativeCrashSignals(new File(gameDir, "logs/latest.log")));
             json.put("startup_failure_signals", startupFailureSignals(new File(gameDir, "logs/latest.log")));
             json.put("failure_classification", classifyFailureSignals(new File(gameDir, "logs/latest.log")));
+            json.put("privacy_audit", privacyAudit(new File(gameDir, "logs/latest.log")));
             File crashDir = new File(gameDir, "crash-reports");
             File newestCrash = newestFile(crashDir, ".txt");
             json.put("crash_reports_size_mb", directorySizeMb(crashDir));
@@ -870,6 +871,34 @@ public final class MikaelFeatureManager {
             result.put("safe_to_share", true);
         } catch (Exception ignored) { }
         return result;
+    }
+
+    private static org.json.JSONObject privacyAudit(File logFile) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        String text = "";
+        try { if (logFile.isFile()) text = readTail(logFile, 4 * 1024 * 1024); }
+        catch (Exception ignored) { }
+        String lower = text.toLowerCase(Locale.US);
+        int urls = countRegex(text, "https?://[^\\s\\\"']+");
+        int secrets = countRegex(lower, "(?:token|apikey|api_key|password|secret)[=: ]+[a-z0-9_./+\\-]{8,}");
+        int paths = countRegex(text, "(?:/data/user/|/storage/emulated/|/home/|[A-Za-z]:\\\\)[^\\s]+" );
+        try {
+            result.put("urls_detected", urls);
+            result.put("credential_like_values", secrets);
+            result.put("absolute_paths_detected", paths);
+            result.put("redaction_required", urls > 0 || secrets > 0 || paths > 0);
+            result.put("raw_content_included", false);
+        } catch (Exception ignored) { }
+        return result;
+    }
+
+    private static int countRegex(String text, String expression) {
+        try {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(expression).matcher(text);
+            int total = 0;
+            while (matcher.find()) total++;
+            return total;
+        } catch (Exception ignored) { return 0; }
     }
 
     private static org.json.JSONObject downloadQueueHealth(File downloads) {
