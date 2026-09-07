@@ -406,6 +406,7 @@ public final class MikaelFeatureManager {
             json.put("startup_failure_signals", startupFailureSignals(new File(gameDir, "logs/latest.log")));
             json.put("failure_classification", classifyFailureSignals(new File(gameDir, "logs/latest.log")));
             json.put("privacy_audit", privacyAudit(new File(gameDir, "logs/latest.log")));
+            json.put("health_summary", healthSummary(json));
             File crashDir = new File(gameDir, "crash-reports");
             File newestCrash = newestFile(crashDir, ".txt");
             json.put("crash_reports_size_mb", directorySizeMb(crashDir));
@@ -981,6 +982,29 @@ public final class MikaelFeatureManager {
             result.put("newest_crash_age_ms", crashAge);
             result.put("crash_after_log", crash != null && log.isFile() && crash.lastModified() > log.lastModified());
             result.put("report_stale", !log.isFile() || logAge > 604800000L);
+        } catch (Exception ignored) { }
+        return result;
+    }
+
+    private static org.json.JSONObject healthSummary(org.json.JSONObject diagnostic) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        try {
+            int issues = diagnostic.optInt("integrity_issue_count", 0);
+            int invalid = diagnostic.optInt("invalid_version_json_count", 0);
+            int missing = diagnostic.optInt("libraries_without_files", 0);
+            boolean launchReady = diagnostic.optJSONObject("launch_readiness") == null
+                    || diagnostic.optJSONObject("launch_readiness").optBoolean("ready", true);
+            boolean privacy = diagnostic.optJSONObject("privacy_audit") == null
+                    || !diagnostic.optJSONObject("privacy_audit").optBoolean("redaction_required", false);
+            boolean renderer = diagnostic.optJSONObject("renderer_compatibility") == null
+                    || diagnostic.optJSONObject("renderer_compatibility").optString("warning", "").isEmpty();
+            result.put("status", issues > 0 || invalid > 0 || missing > 0 ? "needs_attention" : "healthy");
+            result.put("launch_ready", launchReady);
+            result.put("renderer_ok", renderer);
+            result.put("privacy_clean", privacy);
+            result.put("integrity_issues", issues + invalid + missing);
+            result.put("action_required", !launchReady || !renderer || !privacy || issues > 0 || invalid > 0 || missing > 0);
+            result.put("schema", 500);
         } catch (Exception ignored) { }
         return result;
     }
