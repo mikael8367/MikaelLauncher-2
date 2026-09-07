@@ -43,8 +43,9 @@ public final class MikaelFeatureManager {
         new Thread(() -> {
             try {
                 if (LauncherPreferences.DEFAULT_PREF.getBoolean("auto_backup", false)) backupInstallation(gameDir, versionId);
-                writeCompatibilityReport(context, gameDir, versionId);
-                writeDiagnosticReport(context, gameDir, versionId);
+            writeCompatibilityReport(context, gameDir, versionId);
+            writeDiagnosticReport(context, gameDir, versionId);
+            writeDiagnosticJson(context, gameDir, versionId);
             } catch (Exception e) {
                 Log.w(TAG, "Launch preparation feature failed; continuing launch", e);
             }
@@ -257,6 +258,33 @@ public final class MikaelFeatureManager {
         File dir = new File(gameDir, "crash-reports");
         File[] files = dir.listFiles((d, name) -> name.endsWith(".txt"));
         return files == null ? 0 : files.length;
+    }
+
+    public static void writeDiagnosticJson(Context context, File gameDir, String versionId) {
+        File report = new File(gameDir, "mikael-diagnostics.json");
+        try {
+            org.json.JSONObject json = new org.json.JSONObject();
+            json.put("launcher", "MikaelLauncher");
+            json.put("version", versionId);
+            json.put("timestamp", System.currentTimeMillis());
+            json.put("android", Build.VERSION.RELEASE);
+            json.put("api", Build.VERSION.SDK_INT);
+            json.put("abi", Build.SUPPORTED_ABIS.length == 0 ? "unknown" : Build.SUPPORTED_ABIS[0]);
+            json.put("processors", Runtime.getRuntime().availableProcessors());
+            json.put("physical_memory_mb", Tools.getTotalDeviceMemory(context));
+            json.put("free_storage_mb", getFreeStorageMb(gameDir));
+            json.put("log_size_mb", getLogSizeMb(gameDir));
+            json.put("crash_reports", countCrashReports(gameDir));
+            json.put("renderer", LauncherPreferences.PREF_RENDERER);
+            json.put("renderer_profile", LauncherPreferences.PREF_RENDERER_PROFILE);
+            json.put("memory_mode", LauncherPreferences.DEFAULT_PREF.getString("memory_mode", "physical"));
+            json.put("shader_cache", LauncherPreferences.PREF_SHADER_CACHE_ENABLED);
+            json.put("zink_threaded", LauncherPreferences.PREF_ZINK_THREADED);
+            json.put("uncapped_fps", LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false));
+            json.put("vsync", LauncherPreferences.PREF_FORCE_VSYNC);
+            json.put("compatible_renderers", new org.json.JSONArray(Tools.getCompatibleRenderers(context).rendererIds));
+            try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) { out.println(json.toString(2)); }
+        } catch (Exception e) { Log.w(TAG, "Could not write JSON diagnostic report", e); }
     }
 
     private static String findRootCause(String text) {
