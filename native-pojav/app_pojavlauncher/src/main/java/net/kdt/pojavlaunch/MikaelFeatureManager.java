@@ -431,6 +431,13 @@ public final class MikaelFeatureManager {
             json.put("runtime_architecture", System.getProperty("os.arch", "unknown"));
             json.put("selected_runtime_exists", runtimeRoot != null && LauncherPreferences.PREF_DEFAULT_RUNTIME != null && new File(LauncherPreferences.PREF_DEFAULT_RUNTIME).isDirectory());
             json.put("runtime_release_versions", countReleaseFiles(runtimeRoot == null ? gameDir : runtimeRoot));
+            json.put("account_store_exists", new File(gameDir, "accounts.json").isFile());
+            json.put("accounts_store_size", fileSize(new File(gameDir, "accounts.json")));
+            json.put("offline_allowed", LauncherPreferences.DEFAULT_PREF.getBoolean("offline_allowed", true));
+            json.put("microsoft_provider_configured", hasProviderConfig(context, "microsoft"));
+            json.put("elyby_provider_configured", hasProviderConfig(context, "elyby"));
+            json.put("auth_cache_exists", new File(gameDir, "authlib-injector.jar").isFile());
+            json.put("session_cache_present", new File(gameDir, "sessions").isDirectory());
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -707,6 +714,10 @@ public final class MikaelFeatureManager {
         if (root == null) return 0;
         File[] files = root.listFiles((dir, name) -> name.equals("release") || name.startsWith("release-"));
         return files == null ? 0 : files.length;
+    }
+
+    private static boolean hasProviderConfig(Context context, String provider) {
+        return context.getSharedPreferences("accounts", Context.MODE_PRIVATE).contains(provider + "_enabled");
     }
 
     private static boolean findMarker(File root, String token) {
