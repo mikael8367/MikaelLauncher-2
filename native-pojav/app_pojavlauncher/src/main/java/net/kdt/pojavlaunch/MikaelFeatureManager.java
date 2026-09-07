@@ -306,10 +306,17 @@ public final class MikaelFeatureManager {
                 json.put("battery_plugged", battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1));
                 json.put("battery_voltage_mv", battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1));
                 json.put("battery_health", battery.getIntExtra(BatteryManager.EXTRA_HEALTH, -1));
+                // Some Android vendor broadcasts expose this optional field as current_now.
+                json.put("battery_current_ua", battery.getIntExtra("current_now", -1));
+                json.put("battery_capacity_percent", battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1));
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 android.os.PowerManager power = (android.os.PowerManager) context.getSystemService(Context.POWER_SERVICE);
-                if (power != null) json.put("thermal_status", power.getCurrentThermalStatus());
+                if (power != null) {
+                    json.put("thermal_status", power.getCurrentThermalStatus());
+                    json.put("power_save", power.isPowerSaveMode());
+                    json.put("interactive", power.isInteractive());
+                }
             }
             json.put("free_storage_mb", getFreeStorageMb(gameDir));
             json.put("log_size_mb", getLogSizeMb(gameDir));
@@ -323,6 +330,10 @@ public final class MikaelFeatureManager {
             json.put("zink_threaded", LauncherPreferences.PREF_ZINK_THREADED);
             json.put("uncapped_fps", LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false));
             json.put("vsync", LauncherPreferences.PREF_FORCE_VSYNC);
+            json.put("performance_profile", LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"));
+            json.put("resolution_ratio", LauncherPreferences.DEFAULT_PREF.getInt("resolutionRatio", 100));
+            json.put("runtime_count", net.kdt.pojavlaunch.multirt.MultiRTUtils.getRuntimes().size());
+            json.put("default_runtime", LauncherPreferences.PREF_DEFAULT_RUNTIME);
             json.put("compatible_renderers", new org.json.JSONArray(Tools.getCompatibleRenderers(context).rendererIds));
             try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) { out.println(json.toString(2)); }
         } catch (Exception e) { Log.w(TAG, "Could not write JSON diagnostic report", e); }
