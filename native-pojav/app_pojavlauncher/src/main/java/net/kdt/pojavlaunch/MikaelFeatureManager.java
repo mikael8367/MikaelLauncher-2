@@ -412,6 +412,13 @@ public final class MikaelFeatureManager {
                     + countOrphanVersions(new File(gameDir, "versions"));
             json.put("integrity_issue_count", integrityIssues);
             json.put("integrity_severity", integrityIssues == 0 ? "none" : (integrityIssues < 3 ? "warning" : "critical"));
+            File runtimeRoot = new File(Tools.NATIVE_LIB_DIR == null ? gameDir.getPath() : Tools.NATIVE_LIB_DIR).getParentFile();
+            json.put("runtime_root_exists", runtimeRoot != null && runtimeRoot.isDirectory());
+            json.put("java8_detected", findRuntime(runtimeRoot, "8"));
+            json.put("java17_detected", findRuntime(runtimeRoot, "17"));
+            json.put("java21_detected", findRuntime(runtimeRoot, "21"));
+            json.put("runtime_bootstrap_marker", findMarker(gameDir, "runtime_bootstrap"));
+            json.put("runtime_install_errors", countFilesWithName(gameDir, "runtime", "error"));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -655,6 +662,29 @@ public final class MikaelFeatureManager {
             if (manifest.isFile() && (latest == null || manifest.lastModified() > latest.lastModified())) latest = manifest;
         }
         return latest;
+    }
+
+    private static boolean findRuntime(File root, String token) {
+        if (root == null || !root.isDirectory()) return false;
+        File[] children = root.listFiles();
+        if (children == null) return false;
+        for (File child : children) if (child.isDirectory() && child.getName().contains(token)) return true;
+        return false;
+    }
+
+    private static boolean findMarker(File root, String token) {
+        File[] children = root.listFiles((dir, name) -> name.contains(token));
+        return children != null && children.length > 0;
+    }
+
+    private static int countFilesWithName(File root, String first, String second) {
+        int count = 0; File[] files = root.listFiles();
+        if (files == null) return 0;
+        for (File file : files) {
+            if (file.isDirectory()) count += countFilesWithName(file, first, second);
+            else if (file.getName().contains(first) && file.getName().contains(second)) count++;
+        }
+        return count;
     }
 
     private static String findRootCause(String text) {
