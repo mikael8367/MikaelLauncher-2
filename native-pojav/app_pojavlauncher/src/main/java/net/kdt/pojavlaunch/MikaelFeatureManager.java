@@ -335,6 +335,15 @@ public final class MikaelFeatureManager {
             json.put("zink_threaded", LauncherPreferences.PREF_ZINK_THREADED);
             json.put("uncapped_fps", LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false));
             json.put("vsync", LauncherPreferences.PREF_FORCE_VSYNC);
+            json.put("vsync_in_zink", LauncherPreferences.PREF_VSYNC_IN_ZINK);
+            json.put("big_core_affinity", LauncherPreferences.PREF_BIG_CORE_AFFINITY);
+            json.put("sustained_performance", LauncherPreferences.PREF_SUSTAINED_PERFORMANCE);
+            json.put("alternate_surface", LauncherPreferences.PREF_USE_ALTERNATE_SURFACE);
+            json.put("zink_system_driver", LauncherPreferences.PREF_ZINK_PREFER_SYSTEM_DRIVER);
+            json.put("library_sha_check", LauncherPreferences.PREF_CHECK_LIBRARY_SHA);
+            json.put("manifest_verification", LauncherPreferences.PREF_VERIFY_MANIFEST);
+            json.put("download_source", LauncherPreferences.PREF_DOWNLOAD_SOURCE);
+            json.put("resolution_scale", LauncherPreferences.PREF_SCALE_FACTOR);
             json.put("performance_profile", LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"));
             json.put("resolution_ratio", LauncherPreferences.DEFAULT_PREF.getInt("resolutionRatio", 100));
             json.put("runtime_count", net.kdt.pojavlaunch.multirt.MultiRTUtils.getRuntimes().size());
