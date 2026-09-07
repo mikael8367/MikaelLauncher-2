@@ -267,6 +267,8 @@ public final class MikaelFeatureManager {
             json.put("launcher", "MikaelLauncher");
             json.put("version", versionId);
             json.put("timestamp", System.currentTimeMillis());
+            json.put("diagnostic_schema_version", 320);
+            json.put("diagnostic_report_path", report.getAbsolutePath());
             json.put("android", Build.VERSION.RELEASE);
             json.put("api", Build.VERSION.SDK_INT);
             json.put("java_runtime", System.getProperty("java.runtime.version", "unknown"));
@@ -388,6 +390,9 @@ public final class MikaelFeatureManager {
             json.put("latest_log_modified", fileModified(new File(gameDir, "logs/latest.log")));
             json.put("options_modified", fileModified(new File(gameDir, "options.txt")));
             json.put("mods_modified", directoryLatestModified(new File(gameDir, "mods")));
+            json.put("latest_log_lines", countLines(new File(gameDir, "logs/latest.log")));
+            json.put("crash_report_count", countExtensionRecursive(new File(gameDir, "crash-reports"), ".txt"));
+            json.put("diagnostic_inputs_available", countDiagnosticInputs(gameDir));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -637,6 +642,25 @@ public final class MikaelFeatureManager {
     }
 
     private static long fileModified(File file) { return file.isFile() ? file.lastModified() : 0; }
+
+    private static long countLines(File file) {
+        if (!file.isFile()) return 0;
+        long lines = 0;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            while (reader.readLine() != null) lines++;
+        } catch (Exception ignored) { }
+        return lines;
+    }
+
+    private static int countDiagnosticInputs(File root) {
+        int count = 0;
+        if (new File(root, "logs/latest.log").isFile()) count++;
+        if (new File(root, "crash-reports").isDirectory()) count++;
+        if (new File(root, "versions").isDirectory()) count++;
+        if (new File(root, "libraries").isDirectory()) count++;
+        if (new File(root, "options.txt").isFile()) count++;
+        return count;
+    }
 
     private static long directoryLatestModified(File directory) {
         long latest = directory.isDirectory() ? directory.lastModified() : 0;
