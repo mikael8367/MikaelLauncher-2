@@ -18,6 +18,10 @@
             android:defaultValue="opengles2"
             android:icon="@drawable/ic_setting_engine"
             app2:useSimpleSummaryProvider="true"/>
+        <Preference
+            android:key="renderer_catalog"
+            android:title="@string/mikael_renderer_catalog_title"
+            android:summary="@string/mikael_renderer_catalog_summary" />
         <androidx.preference.ListPreference
             android:key="renderer_profile"
             android:defaultValue="performance"

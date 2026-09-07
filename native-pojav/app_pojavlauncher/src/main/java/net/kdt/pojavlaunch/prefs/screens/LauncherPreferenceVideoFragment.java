@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.preference.ListPreference;
+import androidx.preference.Preference;
 import androidx.preference.SwitchPreference;
 import androidx.preference.SwitchPreferenceCompat;
 
@@ -12,6 +13,10 @@ import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.prefs.CustomSeekBarPreference;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
+import net.kdt.pojavlaunch.utils.JREUtils;
+
+import java.io.File;
+import java.util.Locale;
 
 /**
  * Fragment for any settings video related
@@ -66,6 +71,10 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         rendererListPreference.setEntryValues(renderersList.rendererIds.toArray(new String[0]));
         rendererListPreference.setOnPreferenceChangeListener((preference, value) -> {
             updateRendererVisibility(String.valueOf(value));
+            return true;
+        });
+        requirePreference("renderer_catalog", Preference.class).setOnPreferenceClickListener(preference -> {
+            showRendererCatalog();
             return true;
         });
         requirePreference("shader_cache_enabled", SwitchPreferenceCompat.class)
@@ -130,5 +139,36 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
     private void updateRendererVisibility(String renderer) {
         boolean zink = renderer != null && renderer.contains("zink");
         requirePreference("zink_threaded", SwitchPreferenceCompat.class).setVisible(zink);
+    }
+
+    private void showRendererCatalog() {
+        boolean gles3 = JREUtils.getDetectedVersion() >= 3;
+        boolean vulkan = Tools.checkVulkanSupport(requireContext().getPackageManager());
+        File nativeDir = new File(Tools.NATIVE_LIB_DIR);
+        boolean gl4es = new File(nativeDir, "libgl4es_114.so").isFile();
+        boolean zink = vulkan && new File(nativeDir, "libOSMesa.so").isFile();
+        boolean ltw = gles3 && new File(nativeDir, "libltw.so").isFile();
+        boolean angle = new File(nativeDir, "libangle.so").isFile() || new File(nativeDir, "libGLES_angle.so").isFile();
+        StringBuilder text = new StringBuilder();
+        text.append("Disponíveis neste aparelho:\n");
+        appendRenderer(text, "OpenGL ES 2.0 / GL4ES 1.x", gl4es);
+        appendRenderer(text, "OpenGL ES 3.0 / GL4ES 2.x", gl4es && gles3);
+        appendRenderer(text, "LTW / OpenGL ES 3", ltw);
+        appendRenderer(text, "Zink / Vulkan", zink);
+        appendRenderer(text, "ANGLE", angle);
+        appendRenderer(text, "Vulkan 1.x", vulkan);
+        text.append("\nCatálogo não ativável sem biblioteca instalada:\n");
+        text.append("VirGL, VirGL/Vulkan, MobileGL, MobileGLues, Mesa OpenGL/GLES, llvmpipe, softpipe, SWR, Lavapipe, Turnip, Panfrost, PanVK, v3dv, RADV, ANV, MoltenVK, DXVK e VKD3D.\n");
+        text.append("O seletor principal mostra somente backends que o APK e o aparelho conseguem carregar.");
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.mikael_renderer_catalog_title)
+                .setMessage(text.toString())
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    private void appendRenderer(StringBuilder text, String name, boolean available) {
+        text.append(available ? "✓ " : "✗ ").append(name)
+                .append(available ? " — disponível\n" : " — não disponível\n");
     }
 }

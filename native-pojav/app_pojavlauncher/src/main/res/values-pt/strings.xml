@@ -153,6 +153,8 @@
     <string name="mikael_ram_plus_summary">Ativa o modo adaptativo e usa o Swap/RAM Plus detectado como complemento.</string>
     <string name="mikael_ram_plus_limit_title">Limite de uso da RAM Plus</string>
     <string name="mikael_ram_plus_limit_summary">Define o limite complementar considerado pelo launcher; o Android controla o uso real da Swap.</string>
+    <string name="mikael_renderer_catalog_title">Catálogo de renderizadores</string>
+    <string name="mikael_renderer_catalog_summary">Lista OpenGL, Vulkan, tradução e software; somente bibliotecas reais podem ser ativadas.</string>
     <string name="multirt_runtime_corrupt">Runtime do Java corrompida</string>
     <string name="multirt_runtime_incompatiblearch">Arquitetura incompatível: %s</string>
     <string name="multirt_config_title">Runtimes Java</string>
