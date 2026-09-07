@@ -53,7 +53,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="18dp"
-        android:background="@drawable/mikael_card"
+        android:background="@drawable/mikael_active_card"
         android:padding="18dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -171,7 +171,7 @@
                 android:id="@+id/import_resourcepack_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:background="@drawable/mikael_card"
+                android:background="@drawable/mikael_menu_button"
                 android:drawableStart="@drawable/ic_menu_install_jar"
                 android:text="Importar textura (.zip / .mcpack)"
                 android:textColor="@color/mikael_lime" />
@@ -180,7 +180,7 @@
                 android:id="@+id/import_shaderpack_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:background="@drawable/mikael_card"
+                android:background="@drawable/mikael_menu_button"
                 android:drawableStart="@drawable/ic_setting_video"
                 android:text="Importar shader (.zip / .mcshader)"
                 android:textColor="@color/mikael_accent" />
@@ -189,7 +189,7 @@
                 android:id="@+id/news_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:background="@drawable/mikael_card"
+                android:background="@drawable/mikael_menu_button"
                 android:drawableStart="@drawable/ic_menu_news"
                 android:text="Catálogo de versões"
                 android:textColor="@color/primary_text" />
@@ -198,7 +198,7 @@
                 android:id="@+id/discord_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:background="@drawable/mikael_card"
+                android:background="@drawable/mikael_menu_button"
                 android:drawableStart="@drawable/ic_discord"
                 android:text="Hub da comunidade"
                 android:textColor="@color/primary_text" />
@@ -207,7 +207,7 @@
                 android:id="@+id/custom_control_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:background="@drawable/mikael_card"
+                android:background="@drawable/mikael_menu_button"
                 android:drawableStart="@drawable/ic_menu_custom_controls"
                 android:text="Controles / gamepad"
                 android:textColor="@color/primary_text" />
@@ -216,7 +216,7 @@
                 android:id="@+id/install_jar_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:background="@drawable/mikael_card"
+                android:background="@drawable/mikael_menu_button"
                 android:drawableStart="@drawable/ic_menu_install_jar"
                 android:text="Mods / modpacks"
                 android:textColor="@color/primary_text" />
@@ -225,7 +225,7 @@
                 android:id="@+id/share_logs_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:background="@drawable/mikael_card"
+                android:background="@drawable/mikael_menu_button"
                 android:drawableStart="@android:drawable/ic_menu_share"
                 android:text="Telemetria / diagnóstico"
                 android:textColor="@color/primary_text" />
@@ -234,7 +234,7 @@
                 android:id="@+id/open_files_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
-                android:background="@drawable/mikael_card"
+                android:background="@drawable/mikael_menu_button"
                 android:drawableStart="@drawable/ic_folder"
                 android:text="Arquivos / mundos"
                 android:textColor="@color/primary_text" />
