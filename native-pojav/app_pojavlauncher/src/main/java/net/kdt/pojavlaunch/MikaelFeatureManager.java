@@ -403,6 +403,7 @@ public final class MikaelFeatureManager {
             json.put("stack_trace_count", countStackTraces(new File(gameDir, "logs/latest.log")));
             json.put("native_crash_signal_count", countNativeCrashSignals(new File(gameDir, "logs/latest.log")));
             json.put("startup_failure_signals", startupFailureSignals(new File(gameDir, "logs/latest.log")));
+            json.put("failure_classification", classifyFailureSignals(new File(gameDir, "logs/latest.log")));
             File crashDir = new File(gameDir, "crash-reports");
             File newestCrash = newestFile(crashDir, ".txt");
             json.put("crash_reports_size_mb", directorySizeMb(crashDir));
@@ -850,6 +851,23 @@ public final class MikaelFeatureManager {
             result.put("zink_ready", renderer.contains("zink") && vulkan && arm64);
             result.put("gl4es_ready", renderer.contains("gl4es") || !renderer.contains("zink"));
             result.put("warning", renderer.contains("zink") && !vulkan ? "Vulkan não detectado para o renderer selecionado" : "");
+        } catch (Exception ignored) { }
+        return result;
+    }
+
+    private static org.json.JSONObject classifyFailureSignals(File logFile) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        String text = "";
+        try { if (logFile.isFile()) text = readTail(logFile, 4 * 1024 * 1024).toLowerCase(Locale.US); }
+        catch (Exception ignored) { }
+        try {
+            result.put("oom", containsAny(text, "outofmemoryerror", "java heap space", "failed to allocate"));
+            result.put("jni", containsAny(text, "unsatisfiedlinkerror", "jni error", "native method"));
+            result.put("renderer", containsAny(text, "egl_bad", "gl_context", "vulkan", "zink", "gl4es"));
+            result.put("network", containsAny(text, "sockettimeoutexception", "connection refused", "failed to download", "http 5"));
+            result.put("modloader", containsAny(text, "fabric loader", "forge mod loading", "modloading", "mixin apply failed"));
+            result.put("crash_loop", count(text, "---- minecraft crash report ----") > 1);
+            result.put("safe_to_share", true);
         } catch (Exception ignored) { }
         return result;
     }
