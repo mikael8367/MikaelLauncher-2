@@ -419,6 +419,13 @@ public final class MikaelFeatureManager {
             json.put("java21_detected", findRuntime(runtimeRoot, "21"));
             json.put("runtime_bootstrap_marker", findMarker(gameDir, "runtime_bootstrap"));
             json.put("runtime_install_errors", countFilesWithName(gameDir, "runtime", "error"));
+            json.put("java8_executable", findRuntimeFile(runtimeRoot, "8", "bin/java"));
+            json.put("java17_executable", findRuntimeFile(runtimeRoot, "17", "bin/java"));
+            json.put("java21_executable", findRuntimeFile(runtimeRoot, "21", "bin/java"));
+            json.put("java8_executable_ok", runtimeExecutableOk(runtimeRoot, "8"));
+            json.put("java17_executable_ok", runtimeExecutableOk(runtimeRoot, "17"));
+            json.put("java21_executable_ok", runtimeExecutableOk(runtimeRoot, "21"));
+            json.put("runtime_release_files", countFilesWithName(runtimeRoot == null ? gameDir : runtimeRoot, "release", ""));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -669,6 +676,25 @@ public final class MikaelFeatureManager {
         File[] children = root.listFiles();
         if (children == null) return false;
         for (File child : children) if (child.isDirectory() && child.getName().contains(token)) return true;
+        return false;
+    }
+
+    private static boolean findRuntimeFile(File root, String token, String relative) {
+        if (root == null || !root.isDirectory()) return false;
+        File[] children = root.listFiles();
+        if (children == null) return false;
+        for (File child : children) if (child.isDirectory() && child.getName().contains(token) && new File(child, relative).isFile()) return true;
+        return false;
+    }
+
+    private static boolean runtimeExecutableOk(File root, String token) {
+        if (root == null || !root.isDirectory()) return false;
+        File[] children = root.listFiles();
+        if (children == null) return false;
+        for (File child : children) {
+            File java = new File(child, "bin/java");
+            if (child.isDirectory() && child.getName().contains(token) && java.isFile()) return java.canExecute() || java.length() > 0;
+        }
         return false;
     }
 
