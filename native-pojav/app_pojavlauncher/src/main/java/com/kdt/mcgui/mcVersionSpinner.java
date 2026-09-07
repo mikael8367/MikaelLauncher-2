@@ -33,6 +33,7 @@ import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.profiles.ProfileAdapter;
 import net.kdt.pojavlaunch.profiles.ProfileAdapterExtra;
 import net.kdt.pojavlaunch.value.launcherprofiles.MinecraftProfile;
+import net.kdt.pojavlaunch.value.launcherprofiles.LauncherProfiles;
 
 import fr.spse.extended_view.ExtendedTextView;
 
@@ -178,7 +179,7 @@ public class mcVersionSpinner extends ExtendedTextView {
                         .setPositiveButton(android.R.string.ok, (dialog, which) -> {
                             LauncherProfiles.load();
                             if (LauncherProfiles.deleteProfile(current.toString())) {
-                                ExtraCore.setValue(ExtraConstants.REFRESH_VERSION_SPINNER, mcVersionSpinner.DELETED_PROFILE);
+                                ExtraCore.setValue(ExtraConstants.REFRESH_VERSION_SPINNER, DELETED_PROFILE);
                                 reloadProfiles();
                                 setSelection(0);
                             }
