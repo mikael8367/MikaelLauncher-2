@@ -6,7 +6,9 @@
         android:text="Mods da instalação" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/mikael_lime"/>
     <TextView android:id="@+id/mod_manager_path" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:ellipsize="middle" android:maxLines="1" android:textColor="@color/secondary_text" android:paddingTop="4dp"/>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="10dp">
+    <EditText android:id="@+id/mod_manager_search" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="Filtrar mods instalados" android:singleLine="true" android:inputType="text"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="8dp">
         <Button android:id="@+id/mod_manager_curseforge" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:text="CurseForge" android:textAllCaps="false"/>
         <Button android:id="@+id/mod_manager_import" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
@@ -15,6 +17,8 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
         <Button android:id="@+id/mod_manager_backup" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:text="Backup" android:textAllCaps="false"/>
+        <Button android:id="@+id/mod_manager_restore" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="Restaurar" android:textAllCaps="false"/>
         <Button android:id="@+id/mod_manager_refresh" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:text="Atualizar" android:textAllCaps="false"/>
     </LinearLayout>
