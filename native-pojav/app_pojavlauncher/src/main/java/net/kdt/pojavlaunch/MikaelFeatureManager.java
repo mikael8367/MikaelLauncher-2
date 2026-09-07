@@ -462,6 +462,14 @@ public final class MikaelFeatureManager {
             json.put("native_abi_count", Build.SUPPORTED_ABIS.length);
             json.put("native_abi_list", new org.json.JSONArray(java.util.Arrays.asList(Build.SUPPORTED_ABIS)));
             json.put("native_lib_size_mb", directorySizeMb(new File(appInfo.nativeLibraryDir)));
+            json.put("fps_overlay_enabled", LauncherPreferences.DEFAULT_PREF.getBoolean("fps_overlay_enabled", false));
+            json.put("turbo_enabled", LauncherPreferences.DEFAULT_PREF.getBoolean("turbo_mode", false));
+            json.put("quick_settings_enabled", LauncherPreferences.DEFAULT_PREF.getBoolean("quick_settings_enabled", true));
+            json.put("video_settings_exists", new File(gameDir, "options.txt").isFile());
+            json.put("controls_file_exists", new File(gameDir, "options.txt").isFile());
+            json.put("shader_cache_dir_size_mb", directorySizeMb(new File(gameDir, "shader_cache")));
+            json.put("glsl_cache_dir_size_mb", directorySizeMb(new File(gameDir, ".cache")));
+            json.put("render_log_count", countFilesWithName(new File(gameDir, "logs"), "render", ""));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
