@@ -694,7 +694,7 @@ public final class MikaelFeatureManager {
             while ((line = reader.readLine()) != null && unique.size() < 20) {
                 String lower = line.toLowerCase(Locale.US);
                 if (lower.contains("error") || lower.contains("exception") || lower.contains("fatal")) {
-                    String normalized = line.replaceAll("\\d+", "#").trim();
+                    String normalized = redactDiagnosticText(line.replaceAll("\\d+", "#").trim());
                     if (normalized.length() > 160) normalized = normalized.substring(0, 160);
                     unique.add(normalized);
                 }
@@ -702,6 +702,13 @@ public final class MikaelFeatureManager {
         } catch (Exception ignored) { }
         for (String signature : unique) signatures.put(signature);
         return signatures;
+    }
+
+    private static String redactDiagnosticText(String text) {
+        return text.replaceAll("https?://\\S+", "<url>")
+                .replaceAll("(?i)(token|secret|password|authorization|api[_-]?key)=\\S+", "$1=<redacted>")
+                .replaceAll("/data/user/\\d+/[^ ]+", "<app-path>")
+                .replaceAll("/storage/emulated/\\d+/[^ ]+", "<storage-path>");
     }
 
     private static long directoryLatestModified(File directory) {
