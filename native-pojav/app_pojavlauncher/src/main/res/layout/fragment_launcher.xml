@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:text="MIKAEL / NEXUS"
         android:textColor="@color/mikael_lime"
-        android:textSize="21sp"
+        android:textSize="19sp"
         android:textStyle="bold"
         android:fontFamily="@font/noto_sans_bold"
         android:letterSpacing="0.08"
@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:text="● ONLINE"
         android:textColor="@color/mikael_accent"
-        android:textSize="13sp"
+        android:textSize="11sp"
         android:fontFamily="@font/noto_sans_bold"
         app:layout_constraintBottom_toBottomOf="@id/mikael_brand"
         app:layout_constraintEnd_toEndOf="parent"
@@ -42,8 +42,9 @@
         android:layout_marginTop="10dp"
         android:text="CENTRAL DE CONTROLE\nSeu Minecraft Java, no seu ritmo."
         android:textColor="@color/secondary_text"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:lineSpacingExtra="3dp"
+        android:maxLines="2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/mikael_brand" />
@@ -77,8 +78,9 @@
             android:background="@drawable/mikael_status_pill"
             android:text="● TURBO READY"
             android:textColor="#6BFFB0"
-            android:textSize="10sp"
+            android:textSize="9sp"
             android:textStyle="bold"
+            android:maxLines="1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -89,8 +91,10 @@
             android:layout_marginTop="4dp"
             android:text="SURVIVAL / PRIME"
             android:textColor="@color/primary_text"
-            android:textSize="21sp"
+            android:textSize="19sp"
             android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/mikael_active_label" />
 
@@ -101,7 +105,9 @@
             android:layout_marginTop="5dp"
             android:text="FORGE   •   JAVA 8   •   TURBO READY"
             android:textColor="@color/secondary_text"
-            android:textSize="13sp"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="end"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/mikael_active_name" />
 
@@ -175,10 +181,13 @@
                 android:gravity="center_vertical"
                 android:paddingStart="14dp"
                 android:paddingEnd="10dp"
-                android:background="@drawable/mikael_menu_button"
-                android:drawableStart="@drawable/ic_menu_install_jar"
-                android:text="Importar textura (.zip / .mcpack)"
-                android:textColor="@color/mikael_lime" />
+            android:background="@drawable/mikael_menu_button"
+            android:drawableStart="@drawable/ic_menu_install_jar"
+            android:text="Importar textura (.zip / .mcpack)"
+            android:textColor="@color/mikael_lime"
+            android:textSize="13sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/import_shaderpack_button"
@@ -188,10 +197,13 @@
                 android:gravity="center_vertical"
                 android:paddingStart="14dp"
                 android:paddingEnd="10dp"
-                android:background="@drawable/mikael_menu_button"
-                android:drawableStart="@drawable/ic_setting_video"
-                android:text="Importar shader (.zip / .mcshader)"
-                android:textColor="@color/mikael_accent" />
+            android:background="@drawable/mikael_menu_button"
+            android:drawableStart="@drawable/ic_setting_video"
+            android:text="Importar shader (.zip / .mcshader)"
+            android:textColor="@color/mikael_accent"
+            android:textSize="13sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/news_button"
