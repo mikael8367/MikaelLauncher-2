@@ -33,6 +33,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -67,6 +70,9 @@ public class ModManagerFragment extends Fragment {
         view.findViewById(R.id.mod_manager_backup).setOnClickListener(v -> backupMods());
         view.findViewById(R.id.mod_manager_restore).setOnClickListener(v -> confirmRestore());
         view.findViewById(R.id.mod_manager_curseforge).setOnClickListener(v -> openCurseForge());
+        view.findViewById(R.id.mod_manager_enable_all).setOnClickListener(v -> setAllEnabled(true));
+        view.findViewById(R.id.mod_manager_disable_all).setOnClickListener(v -> setAllEnabled(false));
+        view.findViewById(R.id.mod_manager_report).setOnClickListener(v -> generateReport());
         refresh();
     }
 
@@ -96,6 +102,54 @@ public class ModManagerFragment extends Fragment {
     }
     private void toggle(File file) { File out=file.getName().endsWith(".disabled")?new File(file.getParentFile(),file.getName().substring(0,file.getName().length()-9)):new File(file.getParentFile(),file.getName()+".disabled"); if(file.renameTo(out)) refresh(); else toast("Não foi possível alterar o estado"); }
     private void confirmDelete(File file) { new AlertDialog.Builder(requireContext()).setMessage("Excluir "+file.getName()+"?").setNegativeButton(android.R.string.cancel,null).setPositiveButton(android.R.string.ok,(d,w)->{if(file.delete())refresh();else toast("Falha ao excluir");}).show(); }
+
+    private void setAllEnabled(boolean enabled) {
+        if (modsDir == null) return;
+        PojavApplication.sExecutorService.execute(() -> {
+            int changed = 0; File[] files = modsDir.listFiles((d,n) -> n.endsWith(".jar") || n.endsWith(".jar.disabled"));
+            if (files != null) for (File file : files) {
+                boolean current = !file.getName().endsWith(".disabled");
+                if (current == enabled) continue;
+                File out = enabled ? new File(file.getParentFile(), file.getName().substring(0, file.getName().length() - 9)) : new File(file.getParentFile(), file.getName() + ".disabled");
+                if (file.renameTo(out)) changed++;
+            }
+            final int total = changed;
+            Tools.runOnUiThread(() -> { toast(total + " mod(s) alterado(s)"); refresh(); });
+        });
+    }
+
+    private void generateReport() {
+        if (modsDir == null) return;
+        PojavApplication.sExecutorService.execute(() -> {
+            StringBuilder report = new StringBuilder("MikaelLauncher - Relatório de mods\n");
+            report.append("Pasta: ").append(modsDir.getAbsolutePath()).append("\n\n");
+            File[] files = modsDir.listFiles((d,n) -> n.endsWith(".jar") || n.endsWith(".jar.disabled"));
+            int invalid = 0, suspicious = 0;
+            if (files != null) for (File file : files) {
+                boolean valid = validateJar(file);
+                String lower = file.getName().toLowerCase();
+                boolean likelyDependency = lower.contains("api") || lower.contains("library") || lower.contains("lib");
+                if (!valid) invalid++; if (likelyDependency) suspicious++;
+                report.append(valid ? "OK" : "INVALIDO").append(" | ").append(file.getName()).append(" | ").append(formatBytes(file.length()));
+                if (likelyDependency) report.append(" | possível biblioteca/dependência");
+                report.append("\n");
+            }
+            report.append("\nArquivos inválidos: ").append(invalid).append("\nPossíveis dependências: ").append(suspicious).append("\n");
+            final int invalidCount = invalid;
+            try {
+                File out = new File(modsDir.getParentFile(), "mikael-mod-report-" + System.currentTimeMillis() + ".txt");
+                try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(out), StandardCharsets.UTF_8)) { writer.write(report.toString()); }
+                Tools.runOnUiThread(() -> toast("Relatório criado: " + out.getName() + (invalidCount > 0 ? " — há arquivos inválidos" : "")));
+            } catch (Exception e) { Tools.runOnUiThread(() -> toast("Falha ao criar relatório: " + e.getMessage())); }
+        });
+    }
+
+    private boolean validateJar(File file) {
+        if (file.length() < 4) return false;
+        try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(file)) {
+            return zip.getEntry("META-INF/MANIFEST.MF") != null || zip.size() > 0;
+        } catch (Exception e) { return false; }
+    }
 
     private void importMod(Uri uri) { if(modsDir==null)return; PojavApplication.sExecutorService.execute(()->{try{if(!modsDir.exists()&&!modsDir.mkdirs())throw new IOException("Pasta mods indisponível");String name=Tools.getFileName(requireContext(),uri);if(name==null||name.isEmpty())name="imported-mod.jar";name=name.replaceAll("[^A-Za-z0-9._-]","_");if(!name.endsWith(".jar"))name+=".jar";final String importedName=name;File out=new File(modsDir,importedName);try(InputStream in=requireContext().getContentResolver().openInputStream(uri);FileOutputStream fos=new FileOutputStream(out)){if(in==null)throw new IOException("Arquivo ilegível");byte[]b=new byte[8192];int n;while((n=in.read(b))!=-1)fos.write(b,0,n);}Tools.runOnUiThread(()->{toast("Mod importado: "+importedName);refresh();});}catch(Exception e){Tools.runOnUiThread(()->toast("Falha ao importar: "+e.getMessage()));}}); }
 
