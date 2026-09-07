@@ -440,6 +440,7 @@ public final class MikaelFeatureManager {
                     + countOrphanVersions(new File(gameDir, "versions"));
             json.put("integrity_issue_count", integrityIssues);
             json.put("integrity_severity", integrityIssues == 0 ? "none" : (integrityIssues < 3 ? "warning" : "critical"));
+            json.put("installation_integrity", installationIntegrity(gameDir, integrityIssues));
             File runtimeRoot = new File(Tools.NATIVE_LIB_DIR == null ? gameDir.getPath() : Tools.NATIVE_LIB_DIR).getParentFile();
             json.put("runtime_root_exists", runtimeRoot != null && runtimeRoot.isDirectory());
             json.put("java8_detected", findRuntime(runtimeRoot, "8"));
@@ -960,6 +961,26 @@ public final class MikaelFeatureManager {
             result.put("storage_below_1gb", freeMb >= 0 && freeMb < 1024);
             result.put("memory_pressure", lowMemory || (availableMb >= 0 && availableMb < 512));
             result.put("ready", !lowMemory && (availableMb < 0 || availableMb >= 256) && (freeMb < 0 || freeMb >= 1024));
+        } catch (Exception ignored) { }
+        return result;
+    }
+
+    private static org.json.JSONObject installationIntegrity(File gameDir, int issueCount) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        File versions = new File(gameDir, "versions");
+        File libraries = new File(gameDir, "libraries");
+        try {
+            int invalid = countInvalidJson(versions);
+            int withoutJar = countVersionsWithoutJar(versions);
+            int missingLibraries = countMissingLibraryFiles(libraries);
+            int incomplete = countIncompleteManifests(versions);
+            result.put("version_directories", countDirectories(versions));
+            result.put("invalid_manifests", invalid);
+            result.put("versions_without_jar", withoutJar);
+            result.put("missing_library_files", missingLibraries);
+            result.put("incomplete_manifests", incomplete);
+            result.put("issue_count", issueCount);
+            result.put("repair_recommended", issueCount > 0 || invalid > 0 || withoutJar > 0 || missingLibraries > 0 || incomplete > 0);
         } catch (Exception ignored) { }
         return result;
     }
