@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
 
 import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
@@ -38,6 +39,19 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
         if(is32BitsDevice() || deviceRam < 2048) maxRAM = Math.min(1024, deviceRam);
         else maxRAM = deviceRam - (deviceRam < 3064 ? 800 : 1024); //To have a minimum for the device to breathe
 
+        ListPreference memoryMode = requirePreference("memory_mode", ListPreference.class);
+        memoryMode.setSummaryProvider(preference -> {
+            String mode = ((ListPreference) preference).getValue();
+            return "adaptive".equals(mode)
+                    ? "Swap/RAM Plus detectado: " + getSwapMb() + " MB; usado apenas como fallback lento."
+                    : "Usando apenas RAM física; melhor latência e estabilidade.";
+        });
+        memoryMode.setOnPreferenceChangeListener((preference, value) -> {
+            preference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
+            return true;
+        });
+        if ("adaptive".equals(memoryMode.getValue())) maxRAM += Math.min(getSwapMb() / 4, 2048);
+
         memorySeekbar.setMaxKeepIncrement(maxRAM);
         memorySeekbar.setValue(ramAllocation);
         memorySeekbar.setSuffix(" MB");
@@ -59,5 +73,18 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
             mDialogScreen.prepare(getContext(), mVmInstallLauncher);
         }
         mDialogScreen.show();
+    }
+
+    private int getSwapMb() {
+        try {
+            String memInfo = Tools.read("/proc/meminfo");
+            for (String line : memInfo.split("\\n")) {
+                if (line.startsWith("SwapTotal:")) {
+                    String[] parts = line.trim().split("\\s+");
+                    return Integer.parseInt(parts[1]) / 1024;
+                }
+            }
+        } catch (Exception ignored) { }
+        return 0;
     }
 }

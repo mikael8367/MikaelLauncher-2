@@ -39,6 +39,14 @@
         <item>vulkan_zink</item> <!-- virglrenderer with OpenGL ES 3 -->
         <item>opengles3_ltw</item>
     </string-array>
+    <string-array name="mikael_memory_mode_entries">
+        <item>@string/mikael_memory_physical</item>
+        <item>@string/mikael_memory_adaptive</item>
+    </string-array>
+    <string-array name="mikael_memory_mode_values">
+        <item>physical</item>
+        <item>adaptive</item>
+    </string-array>
     <string-array name="download_source_names">
         <item>@string/global_default</item>
         <item>BMCLAPI</item>

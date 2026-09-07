@@ -45,6 +45,10 @@
     <string name="mikael_duplicate_installation">Duplicar instalação</string>
     <string name="mikael_delete_installation">Excluir instalação</string>
     <string name="mikael_profile_delete_confirm">Excluir esta instalação e seus arquivos? Esta ação não pode ser desfeita.</string>
+    <string name="mikael_memory_mode_title">Fonte de memória</string>
+    <string name="mikael_memory_mode_summary">Física é mais rápida; Adaptativa usa o swap/RAM Plus detectado sem prometer a mesma velocidade.</string>
+    <string name="mikael_memory_physical">RAM física — melhor desempenho</string>
+    <string name="mikael_memory_adaptive">Adaptativa — RAM física + swap disponível</string>
 
     <!-- Action bar part -->
 
