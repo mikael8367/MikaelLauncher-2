@@ -409,6 +409,7 @@ public final class MikaelFeatureManager {
             json.put("newest_crash_report", newestCrash == null ? "missing" : redactDiagnosticText(newestCrash.getName()));
             json.put("newest_crash_modified", newestCrash == null ? 0 : newestCrash.lastModified());
             json.put("hours_since_newest_crash", newestCrash == null ? -1 : Math.max(0, (System.currentTimeMillis() - newestCrash.lastModified()) / 3600000));
+            json.put("version_manifest_summary", versionManifestSummary(new File(gameDir, "versions")));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -754,6 +755,38 @@ public final class MikaelFeatureManager {
             }
         } catch (Exception ignored) { }
         return result;
+    }
+
+    private static org.json.JSONArray versionManifestSummary(File versions) {
+        org.json.JSONArray result = new org.json.JSONArray();
+        File[] dirs = versions.listFiles(File::isDirectory);
+        if (dirs == null) return result;
+        for (File dir : dirs) {
+            if (result.length() >= 30) break;
+            File manifest = new File(dir, dir.getName() + ".json");
+            if (!manifest.isFile()) continue;
+            try {
+                String text = readLimited(manifest, 500_000);
+                org.json.JSONObject item = new org.json.JSONObject(text);
+                org.json.JSONObject summary = new org.json.JSONObject();
+                summary.put("id", redactDiagnosticText(item.optString("id", dir.getName())));
+                summary.put("type", item.optString("type", "unknown"));
+                summary.put("inherits_from", item.optString("inheritsFrom", ""));
+                summary.put("main_class_present", item.has("mainClass"));
+                result.put(summary);
+            } catch (Exception ignored) { }
+        }
+        return result;
+    }
+
+    private static String readLimited(File file, int maxChars) throws IOException {
+        StringBuilder result = new StringBuilder();
+        try (java.io.Reader reader = new java.io.FileReader(file)) {
+            char[] buffer = new char[8192];
+            int read;
+            while (result.length() < maxChars && (read = reader.read(buffer, 0, Math.min(buffer.length, maxChars - result.length()))) != -1) result.append(buffer, 0, read);
+        }
+        return result.toString();
     }
 
     private static long directoryLatestModified(File directory) {
