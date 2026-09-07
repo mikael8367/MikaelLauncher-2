@@ -99,8 +99,6 @@ public class MinecraftAccount {
     }
 
     public Bitmap getSkinFace(){
-        if(isLocal()) return null;
-
         File skinFaceFile = getSkinFaceFile(username);
         if (!skinFaceFile.exists()) {
             // Legacy version, storing the head inside the json as base 64
