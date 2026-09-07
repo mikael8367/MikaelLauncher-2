@@ -24,7 +24,9 @@ static EGLDisplay g_EglDisplay;
 static volatile uint64_t g_mikael_presented_frames;
 static volatile uint64_t g_mikael_frame_time_ns;
 static volatile uint64_t g_mikael_worst_frame_time_ns;
-static uint64_t g_mikael_last_frame_ns;
+// Each render thread needs its own previous timestamp. A single global value
+// can produce corrupt frame times when multiple EGL contexts swap concurrently.
+static __thread uint64_t g_mikael_last_frame_ns;
 static bool g_mikael_frame_telemetry_enabled;
 
 static void mikael_fps_init(void) {
@@ -125,17 +127,19 @@ gl_render_window_t* gl_init_context(gl_render_window_t *share) {
 
     {
         EGLBoolean bindResult;
-        if (strncmp(getenv("POJAV_RENDERER"), "opengles3_desktopgl", 19) == 0) {
+        const char *renderer = getenv("POJAV_RENDERER");
+        if (renderer != NULL && strncmp(renderer, "opengles3_desktopgl", 19) == 0) {
             printf("EGLBridge: Binding to desktop OpenGL\n");
             bindResult = eglBindAPI_p(EGL_OPENGL_API);
         } else {
             printf("EGLBridge: Binding to OpenGL ES\n");
             bindResult = eglBindAPI_p(EGL_OPENGL_ES_API);
         }
-        if (!bindResult) printf("EGLBridge: bind failed: %p\n", eglGetError_p());
+        if (!bindResult) printf("EGLBridge: bind failed: %d\n", eglGetError_p());
     }
 
-    int libgl_es = strtol(getenv("LIBGL_ES"), NULL, 0);
+    const char *gles_env = getenv("LIBGL_ES");
+    int libgl_es = gles_env == NULL ? 2 : strtol(gles_env, NULL, 0);
     if(libgl_es < 0 || libgl_es > INT16_MAX) libgl_es = 2;
     const EGLint egl_context_attributes[] = { EGL_CONTEXT_CLIENT_VERSION, libgl_es, EGL_NONE };
     bundle->context = eglCreateContext_p(g_EglDisplay, bundle->config, share == NULL ? EGL_NO_CONTEXT : share->context, egl_context_attributes);
@@ -202,6 +206,7 @@ void gl_make_current(gl_render_window_t* bundle) {
 }
 
 void gl_swap_buffers() {
+    if (currentBundle == NULL || g_EglDisplay == EGL_NO_DISPLAY) return;
     if(currentBundle->state == STATE_RENDERER_NEW_WINDOW) {
         eglMakeCurrent_p(g_EglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT); //detach everything to destroy the old EGLSurface
         gl_swap_surface(currentBundle);

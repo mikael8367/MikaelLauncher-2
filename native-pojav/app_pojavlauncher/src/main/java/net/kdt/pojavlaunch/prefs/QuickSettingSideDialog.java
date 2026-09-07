@@ -312,7 +312,9 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                 MCOptionUtils.set("useVbo", "true");
                 MCOptionUtils.set("mipmapLevels", "0");
                 MCOptionUtils.set("enableVsync", "false");
-                MCOptionUtils.set("maxFps", "260");
+                // Keep a high practical cap without using the game's "unlimited"
+                // sentinel, which causes unstable pacing on some mobile drivers.
+                MCOptionUtils.set("maxFps", "300");
                 MCOptionUtils.set("ofAnimatedWater", "0");
                 MCOptionUtils.set("ofAnimatedLava", "0");
                 MCOptionUtils.set("ofAnimatedFire", "0");
