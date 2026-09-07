@@ -45,6 +45,7 @@ public final class MikaelFeatureManager {
                 backupInstallation(gameDir, versionId);
             }
             writeCompatibilityReport(context, gameDir, versionId);
+            writeDiagnosticReport(context, gameDir, versionId);
         } catch (Exception e) {
             Log.w(TAG, "Launch preparation feature failed; continuing launch", e);
         }
@@ -162,6 +163,11 @@ public final class MikaelFeatureManager {
                 String rootCause = findRootCause(log);
                 result.append("latest.log: ").append(errors).append(" erros, ").append(warnings).append(" avisos\n");
                 if (rootCause != null) result.append("Causa raiz encontrada (confiança 95%): ").append(rootCause).append('\n');
+                String likelyMod = extractLikelyMod(log);
+                if (likelyMod != null) result.append("Mod citado no erro: ").append(likelyMod).append('\n');
+                String javaIssue = detectJavaArgumentIssue(log);
+                if (javaIssue != null) result.append("Problema de Java: ").append(javaIssue).append('\n');
+                result.append("Armazenamento livre: ").append(getFreeStorageMb(gameDir)).append(" MB\n");
                 if (containsAny(log, "OutOfMemoryError", "GC overhead limit exceeded")) result.append("• Memória Java insuficiente ou pressão excessiva do GC (confiança 90%).\n");
                 if (containsAny(log, "MixinApplyError", "ModLoadingException", "NoClassDefFoundError")) result.append("• Mod incompatível, dependência ausente ou versão incorreta (confiança 90%).\n");
                 if (containsAny(log, "GLFW", "OpenGL", "EGL", "ZINK")) result.append("• Problema potencial no renderizador gráfico (confiança 75%; verifique a linha de causa raiz).\n");
@@ -184,6 +190,52 @@ public final class MikaelFeatureManager {
     private static boolean containsAny(String text, String... tokens) {
         for (String token : tokens) if (text.contains(token)) return true;
         return false;
+    }
+
+    public static long getFreeStorageMb(File gameDir) {
+        try { return gameDir.getUsableSpace() / 1024 / 1024; }
+        catch (Exception ignored) { return -1; }
+    }
+
+    public static long getLogSizeMb(File gameDir) {
+        File log = new File(gameDir, "logs/latest.log");
+        return log.exists() ? log.length() / 1024 / 1024 : 0;
+    }
+
+    private static String extractLikelyMod(String text) {
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(?:mod|Mod|mixin)[: ]+([A-Za-z0-9_.-]{3,64})").matcher(text);
+        return matcher.find() ? matcher.group(1) : null;
+    }
+
+    private static String detectJavaArgumentIssue(String text) {
+        if (containsAny(text, "Unrecognized VM option", "Could not create the Java Virtual Machine")) return "argumento JVM não reconhecido";
+        if (containsAny(text, "Invalid maximum heap size", "Initial heap size set to a larger value")) return "alocação de memória JVM inválida";
+        return null;
+    }
+
+    private static String rendererEvidence(String text) {
+        if (containsAny(text, "ZINK", "MESA", "vulkan")) return "Zink/Vulkan";
+        if (containsAny(text, "GL4ES", "LIBGL", "OpenGL ES")) return "GL4ES/OpenGL ES";
+        if (containsAny(text, "LTW", "ANGLE")) return "LTW/ANGLE";
+        return "não identificado";
+    }
+
+    public static void writeDiagnosticReport(Context context, File gameDir, String versionId) {
+        File report = new File(gameDir, "mikael-diagnostics.txt");
+        try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) {
+            out.println(analyzeLogs(gameDir));
+            out.println("\nRenderer configurado: " + LauncherPreferences.PREF_RENDERER);
+            out.println("Renderer evidenciado no log: " + rendererEvidence(Tools.read(new File(gameDir, "logs/latest.log"))));
+            out.println("Crash reports recentes: " + countCrashReports(gameDir));
+            out.println("Versão: " + versionId);
+            out.println("Temperatura atual: indisponível sem contexto de atividade");
+        } catch (Exception e) { Log.w(TAG, "Could not write diagnostic report", e); }
+    }
+
+    private static int countCrashReports(File gameDir) {
+        File dir = new File(gameDir, "crash-reports");
+        File[] files = dir.listFiles((d, name) -> name.endsWith(".txt"));
+        return files == null ? 0 : files.length;
     }
 
     private static String findRootCause(String text) {
