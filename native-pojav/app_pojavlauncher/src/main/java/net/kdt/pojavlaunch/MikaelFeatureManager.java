@@ -93,12 +93,17 @@ public final class MikaelFeatureManager {
 
     public static File importContent(File source, File gameDir, int contentType) throws IOException {
         if (source == null || !source.isFile()) throw new IOException("Content file not found");
+        if (source.length() <= 0 || source.length() > 1024L * 1024L * 1024L) throw new IOException("Invalid content size");
         String folder;
         switch (contentType) {
             case 1: folder = "resourcepacks"; break;
             case 2: folder = "mikael-content/worlds"; break;
             case 3: folder = "shaderpacks"; break;
             default: folder = "mods"; break;
+        }
+        String name = source.getName().toLowerCase(Locale.US);
+        if ((contentType == 1 || contentType == 3) && !(name.endsWith(".zip") || name.endsWith(".mcpack") || name.endsWith(".mcshader"))) {
+            throw new IOException("Resource pack or shader pack must be ZIP, MCPACK or MCSHADER");
         }
         File destination = new File(new File(gameDir, folder), source.getName());
         copyFile(source, destination);

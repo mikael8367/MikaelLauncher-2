@@ -152,6 +152,24 @@
                 android:textStyle="bold" />
 
             <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/import_resourcepack_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="match_parent"
+                android:background="@drawable/mikael_card"
+                android:drawableStart="@drawable/ic_menu_install_jar"
+                android:text="Importar textura (.zip / .mcpack)"
+                android:textColor="@color/mikael_lime" />
+
+            <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/import_shaderpack_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="match_parent"
+                android:background="@drawable/mikael_card"
+                android:drawableStart="@drawable/ic_setting_video"
+                android:text="Importar shader (.zip / .mcshader)"
+                android:textColor="@color/mikael_accent" />
+
+            <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/news_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"
