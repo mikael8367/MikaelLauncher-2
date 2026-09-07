@@ -344,6 +344,29 @@ public final class MikaelFeatureManager {
             json.put("storage_usable_mb", gameDir.getUsableSpace() / 1024 / 1024);
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
+            if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                android.net.Network network = connectivity.getActiveNetwork();
+                android.net.NetworkCapabilities caps = network == null ? null : connectivity.getNetworkCapabilities(network);
+                if (caps != null) {
+                    json.put("network_wifi", caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI));
+                    json.put("network_cellular", caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR));
+                    json.put("network_vpn", caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN));
+                    json.put("network_validated", caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED));
+                }
+            }
+            android.os.Debug.MemoryInfo processMemory = new android.os.Debug.MemoryInfo();
+            android.os.Debug.getMemoryInfo(processMemory);
+            json.put("process_pss_mb", processMemory.getTotalPss() / 1024);
+            json.put("dalvik_pss_mb", processMemory.dalvikPss / 1024);
+            json.put("native_pss_mb", processMemory.nativePss / 1024);
+            json.put("other_pss_mb", processMemory.otherPss / 1024);
+            json.put("java_heap_max_mb", Runtime.getRuntime().maxMemory() / 1024 / 1024);
+            json.put("native_heap_allocated_mb", android.os.Debug.getNativeHeapAllocatedSize() / 1024 / 1024);
+            json.put("load_average", readTextFile("/proc/loadavg"));
+            android.view.WindowManager window = (android.view.WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+            if (window != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                json.put("refresh_rate_hz", window.getDefaultDisplay().getRefreshRate());
+            }
             json.put("compatible_renderers", new org.json.JSONArray(Tools.getCompatibleRenderers(context).rendererIds));
             try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) { out.println(json.toString(2)); }
         } catch (Exception e) { Log.w(TAG, "Could not write JSON diagnostic report", e); }
