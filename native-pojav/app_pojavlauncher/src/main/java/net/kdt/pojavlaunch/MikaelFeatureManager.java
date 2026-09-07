@@ -412,6 +412,7 @@ public final class MikaelFeatureManager {
             json.put("version_manifest_summary", versionManifestSummary(new File(gameDir, "versions")));
             json.put("missing_inherited_versions", missingInheritedVersions(new File(gameDir, "versions")));
             json.put("compatibility_warnings", compatibilityWarnings(new File(gameDir, "versions"), System.getProperty("java.specification.version", "unknown")));
+            json.put("renderer_native_libraries", rendererNativeLibraries(context));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -820,6 +821,18 @@ public final class MikaelFeatureManager {
             if (warnings.length() >= 20) break;
         }
         return warnings;
+    }
+
+    private static org.json.JSONObject rendererNativeLibraries(Context context) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        File nativeDir = new File(context.getApplicationInfo().nativeLibraryDir);
+        String[] names = {"libgl4es.so", "libzink.so", "libOSMesa.so", "libangle.so"};
+        for (String name : names) {
+            File file = new File(nativeDir, name);
+            try { result.put(name, file.isFile() && file.length() > 0); } catch (Exception ignored) { }
+        }
+        try { result.put("native_dir", redactDiagnosticText(nativeDir.getAbsolutePath())); } catch (Exception ignored) { }
+        return result;
     }
 
     private static long directoryLatestModified(File directory) {
