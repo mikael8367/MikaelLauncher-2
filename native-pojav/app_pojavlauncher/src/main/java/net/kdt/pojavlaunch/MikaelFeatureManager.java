@@ -370,6 +370,17 @@ public final class MikaelFeatureManager {
             json.put("logs_count", countFiles(new File(gameDir, "logs")));
             json.put("options_exists", new File(gameDir, "options.txt").isFile());
             json.put("versions_count", countDirectories(new File(gameDir, "versions")));
+            json.put("mods_size_mb", directorySizeMb(new File(gameDir, "mods")));
+            json.put("saves_size_mb", directorySizeMb(new File(gameDir, "saves")));
+            json.put("resourcepacks_size_mb", directorySizeMb(new File(gameDir, "resourcepacks")));
+            json.put("shaderpacks_size_mb", directorySizeMb(new File(gameDir, "shaderpacks")));
+            json.put("libraries_size_mb", directorySizeMb(new File(gameDir, "libraries")));
+            json.put("versions_size_mb", directorySizeMb(new File(gameDir, "versions")));
+            json.put("assets_size_mb", directorySizeMb(new File(gameDir, "assets")));
+            json.put("launcher_profiles_exists", new File(gameDir, "launcher_profiles.json").isFile());
+            json.put("servers_exists", new File(gameDir, "servers.dat").isFile());
+            json.put("empty_mods", isEmptyDirectory(new File(gameDir, "mods")));
+            json.put("empty_libraries", isEmptyDirectory(new File(gameDir, "libraries")));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -470,6 +481,24 @@ public final class MikaelFeatureManager {
     private static int countDirectories(File directory) {
         File[] files = directory.listFiles(File::isDirectory);
         return files == null ? 0 : files.length;
+    }
+
+    private static boolean isEmptyDirectory(File directory) {
+        File[] files = directory.listFiles();
+        return directory.isDirectory() && (files == null || files.length == 0);
+    }
+
+    private static long directorySizeMb(File directory) {
+        return directorySize(directory) / 1024 / 1024;
+    }
+
+    private static long directorySize(File file) {
+        if (file == null || !file.exists()) return 0;
+        if (file.isFile()) return file.length();
+        long total = 0;
+        File[] children = file.listFiles();
+        if (children != null) for (File child : children) total += directorySize(child);
+        return total;
     }
 
     private static String findRootCause(String text) {
