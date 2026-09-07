@@ -453,6 +453,15 @@ public final class MikaelFeatureManager {
             json.put("storage_state", android.os.Environment.getExternalStorageState());
             json.put("storage_manager_available", context.getSystemService(Context.STORAGE_SERVICE) != null);
             json.put("data_dir_size_mb", directorySizeMb(context.getFilesDir()));
+            android.content.pm.ApplicationInfo appInfo = context.getApplicationInfo();
+            json.put("target_sdk", appInfo.targetSdkVersion);
+            json.put("debuggable", (appInfo.flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0);
+            json.put("permission_internet", permissionGranted(context, "android.permission.INTERNET"));
+            json.put("permission_network_state", permissionGranted(context, "android.permission.ACCESS_NETWORK_STATE"));
+            json.put("permission_wake_lock", permissionGranted(context, "android.permission.WAKE_LOCK"));
+            json.put("native_abi_count", Build.SUPPORTED_ABIS.length);
+            json.put("native_abi_list", new org.json.JSONArray(java.util.Arrays.asList(Build.SUPPORTED_ABIS)));
+            json.put("native_lib_size_mb", directorySizeMb(new File(appInfo.nativeLibraryDir)));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -733,6 +742,10 @@ public final class MikaelFeatureManager {
 
     private static boolean hasProviderConfig(Context context, String provider) {
         return context.getSharedPreferences("accounts", Context.MODE_PRIVATE).contains(provider + "_enabled");
+    }
+
+    private static boolean permissionGranted(Context context, String permission) {
+        return context.checkCallingOrSelfPermission(permission) == android.content.pm.PackageManager.PERMISSION_GRANTED;
     }
 
     private static boolean findMarker(File root, String token) {
