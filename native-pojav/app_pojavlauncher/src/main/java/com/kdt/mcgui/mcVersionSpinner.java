@@ -14,6 +14,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.Toast;
 import android.widget.PopupWindow;
 
 import androidx.annotation.NonNull;
@@ -22,6 +23,7 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import net.kdt.pojavlaunch.R;
+import net.kdt.pojavlaunch.MikaelFeatureManager;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
@@ -30,6 +32,7 @@ import net.kdt.pojavlaunch.fragments.ProfileTypeSelectFragment;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.profiles.ProfileAdapter;
 import net.kdt.pojavlaunch.profiles.ProfileAdapterExtra;
+import net.kdt.pojavlaunch.value.launcherprofiles.MinecraftProfile;
 
 import fr.spse.extended_view.ExtendedTextView;
 
@@ -39,6 +42,8 @@ import fr.spse.extended_view.ExtendedTextView;
  */
 public class mcVersionSpinner extends ExtendedTextView {
     private static final int VERSION_SPINNER_PROFILE_CREATE = 0;
+    private static final int VERSION_SPINNER_PROFILE_DUPLICATE = 1;
+    private static final int VERSION_SPINNER_PROFILE_DELETE = 2;
     public mcVersionSpinner(@NonNull Context context) {
         super(context);
         init();
@@ -62,6 +67,12 @@ public class mcVersionSpinner extends ExtendedTextView {
             new ProfileAdapterExtra(VERSION_SPINNER_PROFILE_CREATE,
                     R.string.create_profile,
                     ResourcesCompat.getDrawable(getResources(), R.drawable.ic_add, null)),
+            new ProfileAdapterExtra(VERSION_SPINNER_PROFILE_DUPLICATE,
+                    R.string.mikael_duplicate_installation,
+                    ResourcesCompat.getDrawable(getResources(), R.drawable.ic_add, null)),
+            new ProfileAdapterExtra(VERSION_SPINNER_PROFILE_DELETE,
+                    R.string.mikael_delete_installation,
+                    ResourcesCompat.getDrawable(getResources(), R.drawable.ic_menu_delete_forever, null)),
     });
 
 
@@ -138,6 +149,41 @@ public class mcVersionSpinner extends ExtendedTextView {
         if (extra.id == VERSION_SPINNER_PROFILE_CREATE) {
             Tools.swapFragment((FragmentActivity) getContext(), ProfileTypeSelectFragment.class,
                     ProfileTypeSelectFragment.TAG, null);
+        } else if (extra.id == VERSION_SPINNER_PROFILE_DUPLICATE) {
+            Object current = mProfileAdapter.getItem(mSelectedIndex);
+            if (current instanceof String) {
+                LauncherProfiles.load();
+                MinecraftProfile source = LauncherProfiles.mainProfileJson.profiles.get(current.toString());
+                String duplicateKey = LauncherProfiles.duplicateProfile(current.toString());
+                MinecraftProfile duplicate = LauncherProfiles.mainProfileJson.profiles.get(duplicateKey);
+                if (source != null && duplicate != null) {
+                    new Thread(() -> {
+                        try {
+                            MikaelFeatureManager.cloneInstallation(
+                                    Tools.getGameDirPath(source), Tools.getGameDirPath(duplicate));
+                        } catch (Exception e) {
+                            android.util.Log.w("MikaelLauncher", "Could not clone installation files", e);
+                        }
+                    }, "mikael-profile-copy").start();
+                }
+                reloadProfiles();
+                Toast.makeText(getContext(), R.string.mikael_duplicate_installation, Toast.LENGTH_SHORT).show();
+            }
+        } else if (extra.id == VERSION_SPINNER_PROFILE_DELETE) {
+            Object current = mProfileAdapter.getItem(mSelectedIndex);
+            if (current instanceof String) {
+                new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                        .setMessage(R.string.mikael_profile_delete_confirm)
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                            LauncherProfiles.load();
+                            if (LauncherProfiles.deleteProfile(current.toString())) {
+                                ExtraCore.setValue(ExtraConstants.REFRESH_VERSION_SPINNER, mcVersionSpinner.DELETED_PROFILE);
+                                reloadProfiles();
+                                setSelection(0);
+                            }
+                        }).show();
+            }
         }
     }
 

@@ -68,6 +68,30 @@ public class LauncherProfiles {
         mainProfileJson.profiles.put(getFreeProfileKey(), minecraftProfile);
     }
 
+    public static String duplicateProfile(String profileKey) {
+        MinecraftProfile source = mainProfileJson.profiles.get(profileKey);
+        if (source == null) return null;
+        MinecraftProfile copy = new MinecraftProfile(source);
+        copy.name = (source.name == null ? "Instalação" : source.name) + " (cópia)";
+        String key = getFreeProfileKey();
+        copy.gameDir = "mikael-instance-" + key.substring(0, 8);
+        mainProfileJson.profiles.put(key, copy);
+        write();
+        return key;
+    }
+
+    public static boolean deleteProfile(String profileKey) {
+        if (mainProfileJson.profiles.size() <= 1) return false;
+        if (!mainProfileJson.profiles.containsKey(profileKey)) return false;
+        mainProfileJson.profiles.remove(profileKey);
+        if (profileKey.equals(LauncherPreferences.DEFAULT_PREF.getString(LauncherPreferences.PREF_KEY_CURRENT_PROFILE, ""))) {
+            String next = mainProfileJson.profiles.keySet().iterator().next();
+            LauncherPreferences.DEFAULT_PREF.edit().putString(LauncherPreferences.PREF_KEY_CURRENT_PROFILE, next).apply();
+        }
+        write();
+        return true;
+    }
+
     /**
      * Pick an unused normalized key to store a new profile with
      * @return an unused key

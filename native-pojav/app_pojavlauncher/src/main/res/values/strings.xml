@@ -33,6 +33,18 @@
     <string name="mikael_content_worlds">Mundos</string>
     <string name="mikael_content_modpacks">Modpacks</string>
     <string name="mikael_content_search_hint">Pesquisar conteúdo</string>
+    <string name="mikael_tools_category">Ferramentas avançadas</string>
+    <string name="mikael_auto_backup">Backup automático antes de iniciar</string>
+    <string name="mikael_auto_backup_summary">Salva mundos, mods e configurações em um ZIP antes do lançamento.</string>
+    <string name="mikael_thermal_guard">Proteção térmica</string>
+    <string name="mikael_thermal_guard_summary">Reduz a carga quando o aparelho aquecer excessivamente.</string>
+    <string name="mikael_download_retry">Repetir downloads com falha</string>
+    <string name="mikael_download_retry_summary">Retenta downloads interrompidos e preserva arquivos parciais.</string>
+    <string name="mikael_show_diagnostics">Mostrar diagnóstico após falhas</string>
+    <string name="mikael_show_diagnostics_summary">Analisa o crash report mais recente e explica causas prováveis.</string>
+    <string name="mikael_duplicate_installation">Duplicar instalação</string>
+    <string name="mikael_delete_installation">Excluir instalação</string>
+    <string name="mikael_profile_delete_confirm">Excluir esta instalação e seus arquivos? Esta ação não pode ser desfeita.</string>
 
     <!-- Action bar part -->
 

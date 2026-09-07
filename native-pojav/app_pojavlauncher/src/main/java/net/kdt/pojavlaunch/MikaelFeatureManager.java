@@ -61,6 +61,30 @@ public final class MikaelFeatureManager {
         return archive;
     }
 
+    public static void cloneInstallation(File source, File destination) throws IOException {
+        if (!source.isDirectory()) return;
+        if (!destination.exists() && !destination.mkdirs()) throw new IOException("Cannot create destination");
+        File[] children = source.listFiles();
+        if (children == null) return;
+        for (File child : children) {
+            if ("mikael-backups".equals(child.getName())) continue;
+            File target = new File(destination, child.getName());
+            if (child.isDirectory()) cloneInstallation(child, target);
+            else copyFile(child, target);
+        }
+    }
+
+    private static void copyFile(File source, File destination) throws IOException {
+        File parent = destination.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) throw new IOException("Cannot create parent");
+        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(source));
+             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(destination))) {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int read;
+            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+        }
+    }
+
     private static void addDirectory(ZipOutputStream out, File root, File current, String excluded) throws IOException {
         File[] files = current.listFiles();
         if (files == null) return;
