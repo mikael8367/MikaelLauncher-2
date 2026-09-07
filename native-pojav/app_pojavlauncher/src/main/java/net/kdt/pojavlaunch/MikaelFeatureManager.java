@@ -459,6 +459,7 @@ public final class MikaelFeatureManager {
             json.put("runtime_architecture", System.getProperty("os.arch", "unknown"));
             json.put("selected_runtime_exists", runtimeRoot != null && LauncherPreferences.PREF_DEFAULT_RUNTIME != null && new File(LauncherPreferences.PREF_DEFAULT_RUNTIME).isDirectory());
             json.put("runtime_release_versions", countReleaseFiles(runtimeRoot == null ? gameDir : runtimeRoot));
+            json.put("runtime_health", runtimeHealth(runtimeRoot));
             json.put("account_store_exists", new File(gameDir, "accounts.json").isFile());
             json.put("accounts_store_size", fileSize(new File(gameDir, "accounts.json")));
             json.put("offline_allowed", LauncherPreferences.DEFAULT_PREF.getBoolean("offline_allowed", true));
@@ -1066,6 +1067,29 @@ public final class MikaelFeatureManager {
             if (child.isDirectory() && child.getName().contains(token) && java.isFile()) return java.canExecute() || java.length() > 0;
         }
         return false;
+    }
+
+    private static org.json.JSONArray runtimeHealth(File root) {
+        org.json.JSONArray result = new org.json.JSONArray();
+        if (root == null || !root.isDirectory()) return result;
+        File[] children = root.listFiles();
+        if (children == null) return result;
+        for (File child : children) {
+            if (!child.isDirectory() || !new File(child, "bin/java").isFile()) continue;
+            org.json.JSONObject item = new org.json.JSONObject();
+            try {
+                File executable = new File(child, "bin/java");
+                item.put("name", redactDiagnosticText(child.getName()));
+                item.put("executable_bytes", executable.length());
+                item.put("executable_readable", executable.canRead());
+                item.put("executable_executable", executable.canExecute());
+                item.put("release_present", new File(child, "release").isFile());
+                item.put("directory_writable", child.canWrite());
+                item.put("health", executable.length() > 0 && executable.canRead() ? "usable" : "invalid");
+                result.put(item);
+            } catch (Exception ignored) { }
+        }
+        return result;
     }
 
     private static int countReleaseFiles(File root) {
