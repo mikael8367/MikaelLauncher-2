@@ -241,6 +241,14 @@ public final class MikaelFeatureManager {
                     ? rendererEvidence(readTail(latestLog, 4 * 1024 * 1024)) : "não identificado"));
             out.println("Crash reports recentes: " + countCrashReports(gameDir));
             out.println("Versão: " + versionId);
+            out.println("Data do relatório: " + new java.util.Date());
+            out.println("Tamanho latest.log: " + getLogSizeMb(gameDir) + " MB");
+            out.println("Espaço livre: " + getFreeStorageMb(gameDir) + " MB");
+            out.println("Modo de memória: " + LauncherPreferences.DEFAULT_PREF.getString("memory_mode", "physical"));
+            out.println("Runtime selecionado: " + LauncherPreferences.PREF_DEFAULT_RUNTIME);
+            out.println("Perfil do renderer: " + LauncherPreferences.PREF_RENDERER_PROFILE);
+            out.println("Cache de shaders: " + LauncherPreferences.PREF_SHADER_CACHE_ENABLED);
+            out.println("Threading Zink: " + LauncherPreferences.PREF_ZINK_THREADED);
             out.println("Temperatura atual: indisponível sem contexto de atividade");
         } catch (Exception e) { Log.w(TAG, "Could not write diagnostic report", e); }
     }
