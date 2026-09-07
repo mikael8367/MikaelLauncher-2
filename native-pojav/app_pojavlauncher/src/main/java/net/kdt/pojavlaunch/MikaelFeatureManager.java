@@ -413,6 +413,7 @@ public final class MikaelFeatureManager {
             json.put("missing_inherited_versions", missingInheritedVersions(new File(gameDir, "versions")));
             json.put("compatibility_warnings", compatibilityWarnings(new File(gameDir, "versions"), System.getProperty("java.specification.version", "unknown")));
             json.put("renderer_native_libraries", rendererNativeLibraries(context));
+            json.put("renderer_compatibility", rendererCompatibility(context));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -832,6 +833,23 @@ public final class MikaelFeatureManager {
             try { result.put(name, file.isFile() && file.length() > 0); } catch (Exception ignored) { }
         }
         try { result.put("native_dir", redactDiagnosticText(nativeDir.getAbsolutePath())); } catch (Exception ignored) { }
+        return result;
+    }
+
+    private static org.json.JSONObject rendererCompatibility(Context context) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        String renderer = LauncherPreferences.PREF_RENDERER == null ? "unknown" : LauncherPreferences.PREF_RENDERER.toLowerCase(Locale.US);
+        boolean vulkan = Tools.checkVulkanSupport(context.getPackageManager());
+        boolean arm64 = false;
+        for (String abi : Build.SUPPORTED_ABIS) if ("arm64-v8a".equals(abi)) arm64 = true;
+        try {
+            result.put("selected", renderer);
+            result.put("vulkan_supported", vulkan);
+            result.put("arm64_available", arm64);
+            result.put("zink_ready", renderer.contains("zink") && vulkan && arm64);
+            result.put("gl4es_ready", renderer.contains("gl4es") || !renderer.contains("zink"));
+            result.put("warning", renderer.contains("zink") && !vulkan ? "Vulkan não detectado para o renderer selecionado" : "");
+        } catch (Exception ignored) { }
         return result;
     }
 
