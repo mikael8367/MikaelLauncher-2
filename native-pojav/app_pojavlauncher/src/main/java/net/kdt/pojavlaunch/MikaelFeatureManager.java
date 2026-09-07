@@ -32,23 +32,23 @@ public final class MikaelFeatureManager {
     private MikaelFeatureManager() { }
 
     public static void prepareLaunch(@NonNull Context context, @NonNull File gameDir, String versionId) {
-        try {
-            if (LauncherPreferences.DEFAULT_PREF.getBoolean("thermal_guard", true)
-                    && getBatteryTemperatureC(context) >= 45f) {
-                int current = LauncherPreferences.DEFAULT_PREF.getInt("resolutionRatio", 100);
-                if (current > 70) {
-                    LauncherPreferences.DEFAULT_PREF.edit().putInt("resolutionRatio", current - 10).apply();
-                    LauncherPreferences.PREF_SCALE_FACTOR = (current - 10) / 100f;
-                }
+        if (LauncherPreferences.DEFAULT_PREF.getBoolean("thermal_guard", true)
+                && getBatteryTemperatureC(context) >= 45f) {
+            int current = LauncherPreferences.DEFAULT_PREF.getInt("resolutionRatio", 100);
+            if (current > 70) {
+                LauncherPreferences.DEFAULT_PREF.edit().putInt("resolutionRatio", current - 10).apply();
+                LauncherPreferences.PREF_SCALE_FACTOR = (current - 10) / 100f;
             }
-            if (LauncherPreferences.DEFAULT_PREF.getBoolean("auto_backup", false)) {
-                backupInstallation(gameDir, versionId);
-            }
-            writeCompatibilityReport(context, gameDir, versionId);
-            writeDiagnosticReport(context, gameDir, versionId);
-        } catch (Exception e) {
-            Log.w(TAG, "Launch preparation feature failed; continuing launch", e);
         }
+        new Thread(() -> {
+            try {
+                if (LauncherPreferences.DEFAULT_PREF.getBoolean("auto_backup", false)) backupInstallation(gameDir, versionId);
+                writeCompatibilityReport(context, gameDir, versionId);
+                writeDiagnosticReport(context, gameDir, versionId);
+            } catch (Exception e) {
+                Log.w(TAG, "Launch preparation feature failed; continuing launch", e);
+            }
+        }, "mikael-launch-diagnostics").start();
     }
 
     public static File backupInstallation(File gameDir, String versionId) throws IOException {
@@ -139,7 +139,7 @@ public final class MikaelFeatureManager {
         File latest = newestFile(crashDir, ".txt");
         if (latest == null) return "Nenhum crash report encontrado.";
         try {
-            String text = Tools.read(latest);
+            String text = readTail(latest, 2 * 1024 * 1024);
             StringBuilder report = new StringBuilder("Arquivo: ").append(latest.getName()).append('\n');
             if (text.contains("OutOfMemoryError")) report.append("Diagnóstico: memória Java insuficiente.\n");
             if (text.contains("MixinApplyError") || text.contains("ModLoadingException")) report.append("Diagnóstico: mod incompatível ou dependência ausente.\n");
@@ -157,7 +157,7 @@ public final class MikaelFeatureManager {
         if (!latestLog.exists()) result.append("latest.log não encontrado.\n");
         else {
             try {
-                String log = Tools.read(latestLog);
+                String log = readTail(latestLog, 4 * 1024 * 1024);
                 int errors = count(log, "[ERROR]") + count(log, " ERROR ");
                 int warnings = count(log, "[WARN]") + count(log, " WARN ");
                 String rootCause = findRootCause(log);
@@ -190,6 +190,17 @@ public final class MikaelFeatureManager {
     private static boolean containsAny(String text, String... tokens) {
         for (String token : tokens) if (text.contains(token)) return true;
         return false;
+    }
+
+    private static String readTail(File file, int maxBytes) throws IOException {
+        long length = file.length();
+        long start = Math.max(0, length - maxBytes);
+        try (java.io.RandomAccessFile input = new java.io.RandomAccessFile(file, "r")) {
+            input.seek(start);
+            byte[] data = new byte[(int) Math.min(maxBytes, length)];
+            int read = input.read(data);
+            return read <= 0 ? "" : new String(data, 0, read, StandardCharsets.UTF_8);
+        }
     }
 
     public static long getFreeStorageMb(File gameDir) {
@@ -225,7 +236,9 @@ public final class MikaelFeatureManager {
         try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) {
             out.println(analyzeLogs(gameDir));
             out.println("\nRenderer configurado: " + LauncherPreferences.PREF_RENDERER);
-            out.println("Renderer evidenciado no log: " + rendererEvidence(Tools.read(new File(gameDir, "logs/latest.log"))));
+            File latestLog = new File(gameDir, "logs/latest.log");
+            out.println("Renderer evidenciado no log: " + (latestLog.exists()
+                    ? rendererEvidence(readTail(latestLog, 4 * 1024 * 1024)) : "não identificado"));
             out.println("Crash reports recentes: " + countCrashReports(gameDir));
             out.println("Versão: " + versionId);
             out.println("Temperatura atual: indisponível sem contexto de atividade");
