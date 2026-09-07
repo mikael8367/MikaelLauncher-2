@@ -1,16 +1,21 @@
 package net.kdt.pojavlaunch.modloaders.modpacks.api;
 
 import android.util.Log;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
 import net.kdt.pojavlaunch.PojavApplication;
+import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.modloaders.modpacks.models.Constants;
 import net.kdt.pojavlaunch.modloaders.modpacks.models.ModDetail;
 import net.kdt.pojavlaunch.modloaders.modpacks.models.ModItem;
 import net.kdt.pojavlaunch.modloaders.modpacks.models.SearchFilters;
 import net.kdt.pojavlaunch.modloaders.modpacks.models.SearchResult;
+import net.kdt.pojavlaunch.utils.DownloadUtils;
+import net.kdt.pojavlaunch.value.launcherprofiles.LauncherProfiles;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +114,33 @@ public class CommonApi implements ModpackApi {
 
     @Override
     public ModLoader installMod(ModDetail modDetail, int selectedVersion) throws IOException {
+        if (!modDetail.isModpack) {
+            installIndividualContent(modDetail, selectedVersion);
+            return null;
+        }
         return getModpackApi(modDetail.apiSource).installMod(modDetail, selectedVersion);
+    }
+
+    private void installIndividualContent(ModDetail detail, int selectedVersion) throws IOException {
+        LauncherProfiles.load();
+        File base = Tools.getGameDirPath(LauncherProfiles.getCurrentProfile());
+        String folder;
+        switch (detail.contentType) {
+            case SearchFilters.TYPE_RESOURCE_PACK: folder = "resourcepacks"; break;
+            case SearchFilters.TYPE_WORLD: folder = "mikael-content/worlds"; break;
+            case SearchFilters.TYPE_MOD: folder = "mods"; break;
+            default: folder = "downloads"; break;
+        }
+        String url = detail.versionUrls[selectedVersion];
+        String name = Uri.parse(url).getLastPathSegment();
+        if (name == null || name.isEmpty()) name = detail.id + "-" + selectedVersion + ".zip";
+        name = name.replaceAll("[^A-Za-z0-9._-]", "_");
+        File destination = new File(new File(base, folder), name);
+        byte[] buffer = new byte[8192];
+        DownloadUtils.ensureSha1(destination, detail.versionHashes[selectedVersion], () -> {
+            DownloadUtils.downloadFileMonitored(url, destination, buffer, (current, total) -> { });
+            return null;
+        });
     }
 
     private @NonNull ModpackApi getModpackApi(int apiSource) {

@@ -97,7 +97,7 @@ public class CurseforgeApi implements ModpackApi{
                 continue;
             }
             ModItem modItem = new ModItem(Constants.SOURCE_CURSEFORGE,
-                    searchFilters.isModpack,
+                    searchFilters.contentType,
                     dataElement.get("id").getAsString(),
                     dataElement.get("name").getAsString(),
                     dataElement.get("summary").getAsString(),

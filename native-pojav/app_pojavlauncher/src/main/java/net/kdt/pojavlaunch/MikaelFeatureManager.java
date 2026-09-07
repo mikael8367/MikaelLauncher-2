@@ -74,6 +74,35 @@ public final class MikaelFeatureManager {
         }
     }
 
+    public static File setContentEnabled(File content, boolean enabled) {
+        if (content == null || !content.exists()) return content;
+        String name = content.getName();
+        boolean disabled = name.endsWith(".mikael-disabled");
+        if (enabled && disabled) {
+            File target = new File(content.getParentFile(), name.substring(0, name.length() - ".mikael-disabled".length()));
+            return content.renameTo(target) ? target : content;
+        }
+        if (!enabled && !disabled) {
+            File target = new File(content.getParentFile(), name + ".mikael-disabled");
+            return content.renameTo(target) ? target : content;
+        }
+        return content;
+    }
+
+    public static File importContent(File source, File gameDir, int contentType) throws IOException {
+        if (source == null || !source.isFile()) throw new IOException("Content file not found");
+        String folder;
+        switch (contentType) {
+            case 1: folder = "resourcepacks"; break;
+            case 2: folder = "mikael-content/worlds"; break;
+            case 3: folder = "shaderpacks"; break;
+            default: folder = "mods"; break;
+        }
+        File destination = new File(new File(gameDir, folder), source.getName());
+        copyFile(source, destination);
+        return destination;
+    }
+
     private static void copyFile(File source, File destination) throws IOException {
         File parent = destination.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs()) throw new IOException("Cannot create parent");

@@ -8,6 +8,7 @@ public class ModItem extends ModSource {
     public String title;
     public String description;
     public String imageUrl;
+    public int contentType;
 
     public ModItem(int apiSource, boolean isModpack, String id, String title, String description, String imageUrl) {
         this.apiSource = apiSource;
@@ -16,6 +17,12 @@ public class ModItem extends ModSource {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
+        this.contentType = isModpack ? SearchFilters.TYPE_MODPACK : SearchFilters.TYPE_MOD;
+    }
+
+    public ModItem(int apiSource, int contentType, String id, String title, String description, String imageUrl) {
+        this(apiSource, contentType == SearchFilters.TYPE_MODPACK, id, title, description, imageUrl);
+        this.contentType = contentType;
     }
 
     @NonNull

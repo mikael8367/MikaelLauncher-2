@@ -81,7 +81,7 @@ public class ModrinthApi implements ModpackApi{
             JsonObject hit = responseHits.get(i).getAsJsonObject();
             items[i] = new ModItem(
                     Constants.SOURCE_MODRINTH,
-                    hit.get("project_type").getAsString().equals("modpack"),
+                    searchFilters.contentType,
                     hit.get("project_id").getAsString(),
                     hit.get("title").getAsString(),
                     hit.get("description").getAsString(),
