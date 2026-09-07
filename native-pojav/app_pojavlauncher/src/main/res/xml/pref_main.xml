@@ -83,6 +83,29 @@
             android:summary="@string/mikael_preference_wifi_only_summary" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/mikael_tools_category">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="auto_backup"
+            android:title="@string/mikael_auto_backup"
+            android:summary="@string/mikael_auto_backup_summary" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="download_retry"
+            android:title="@string/mikael_download_retry"
+            android:summary="@string/mikael_download_retry_summary" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="show_diagnostics"
+            android:title="@string/mikael_show_diagnostics"
+            android:summary="@string/mikael_show_diagnostics_summary" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="thermal_guard"
+            android:title="@string/mikael_thermal_guard"
+            android:summary="@string/mikael_thermal_guard_summary" />
+    </PreferenceCategory>
+
     <Preference
         android:title="@string/preference_ask_for_notification_title"
         android:summary="@string/preference_ask_for_notification_description"
