@@ -381,6 +381,13 @@ public final class MikaelFeatureManager {
             } catch (Exception ignored) { }
             android.hardware.SensorManager sensors = (android.hardware.SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
             if (sensors != null) json.put("sensor_count", sensors.getSensorList(android.hardware.Sensor.TYPE_ALL).size());
+            org.json.JSONArray recommendations = new org.json.JSONArray();
+            if (memory.lowMemory) recommendations.put("Reduza a alocação Java ou feche apps em segundo plano.");
+            if (getFreeStorageMb(gameDir) >= 0 && getFreeStorageMb(gameDir) < 2048) recommendations.put("Libere pelo menos 2 GB para bibliotecas, cache e mundos.");
+            if (LauncherPreferences.PREF_FORCE_VSYNC) recommendations.put("VSync está ativo; desative para testar FPS sem limite.");
+            if (LauncherPreferences.PREF_RENDERER.contains("zink") && !LauncherPreferences.PREF_ZINK_THREADED) recommendations.put("Threading Zink está desativado; teste-o se não houver crash gráfico.");
+            recommendations.put("Use o diagnóstico junto com o FPS/frametime para diferenciar carga do jogo de limite do display.");
+            json.put("recommendations", recommendations);
             json.put("compatible_renderers", new org.json.JSONArray(Tools.getCompatibleRenderers(context).rendererIds));
             try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) { out.println(json.toString(2)); }
         } catch (Exception e) { Log.w(TAG, "Could not write JSON diagnostic report", e); }
