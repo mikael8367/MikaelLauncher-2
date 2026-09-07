@@ -513,6 +513,13 @@ public final class MikaelFeatureManager {
             json.put("native_worst_frame_ns", frameStats[2]);
             json.put("native_fps_counter_available", frameStats[3] == 1);
             json.put("native_frametime_avg_ms", frameStats[0] > 1 ? (frameStats[1] / 1_000_000.0) / (frameStats[0] - 1) : 0.0);
+            org.json.JSONArray bottlenecks = new org.json.JSONArray();
+            if (LauncherPreferences.PREF_FORCE_VSYNC) bottlenecks.put("vsync");
+            if (memory.lowMemory || processMemory.getTotalPss() > Tools.getTotalDeviceMemory(context) * 1024) bottlenecks.put("memory");
+            if (getFreeStorageMb(gameDir) >= 0 && getFreeStorageMb(gameDir) < 2048) bottlenecks.put("storage");
+            if (battery != null && battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) >= 450) bottlenecks.put("thermal");
+            if (frameStats[0] > 1 && frameStats[1] / (double) (frameStats[0] - 1) > 16_666_666) bottlenecks.put("rendering");
+            json.put("suspected_bottlenecks", bottlenecks);
             org.json.JSONArray recommendations = new org.json.JSONArray();
             if (memory.lowMemory) recommendations.put("Reduza a alocação Java ou feche apps em segundo plano.");
             if (getFreeStorageMb(gameDir) >= 0 && getFreeStorageMb(gameDir) < 2048) recommendations.put("Libere pelo menos 2 GB para bibliotecas, cache e mundos.");
