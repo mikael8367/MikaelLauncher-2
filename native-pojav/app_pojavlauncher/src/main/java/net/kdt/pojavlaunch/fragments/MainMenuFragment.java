@@ -104,8 +104,12 @@ public class MainMenuFragment extends Fragment {
             openPath(v.getContext(), getCurrentProfileDirectory(), false);
         });
 
-        mImportResourcepackButton.setOnClickListener(v -> openContentPicker(1));
-        mImportShaderpackButton.setOnClickListener(v -> openContentPicker(3));
+        // These import actions exist in the portrait layout only. Keep rotation safe when
+        // Android recreates this fragment with the landscape resource variant.
+        if (mImportResourcepackButton != null)
+            mImportResourcepackButton.setOnClickListener(v -> openContentPicker(1));
+        if (mImportShaderpackButton != null)
+            mImportShaderpackButton.setOnClickListener(v -> openContentPicker(3));
 
 
         mNewsButton.setOnLongClickListener((v)->{
