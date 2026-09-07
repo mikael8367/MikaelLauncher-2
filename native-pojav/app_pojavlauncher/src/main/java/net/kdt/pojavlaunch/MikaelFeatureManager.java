@@ -520,6 +520,17 @@ public final class MikaelFeatureManager {
             if (battery != null && battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) >= 450) bottlenecks.put("thermal");
             if (frameStats[0] > 1 && frameStats[1] / (double) (frameStats[0] - 1) > 16_666_666) bottlenecks.put("rendering");
             json.put("suspected_bottlenecks", bottlenecks);
+            org.json.JSONArray tuning = new org.json.JSONArray();
+            for (int i = 0; i < bottlenecks.length(); i++) {
+                String bottleneck = bottlenecks.optString(i);
+                if ("vsync".equals(bottleneck)) tuning.put("Desative VSync para medir o limite real do renderizador.");
+                else if ("memory".equals(bottleneck)) tuning.put("Reduza mods pesados ou ajuste a RAM sem exceder a memória física.");
+                else if ("storage".equals(bottleneck)) tuning.put("Libere espaço antes de reinstalar bibliotecas ou modloaders.");
+                else if ("thermal".equals(bottleneck)) tuning.put("Use resfriamento e verifique o perfil térmico antes de elevar o Turbo.");
+                else if ("rendering".equals(bottleneck)) tuning.put("Compare outro renderer e reduza efeitos antes de aumentar a resolução.");
+            }
+            json.put("tuning_priority", tuning.length() == 0 ? "none" : "review");
+            json.put("tuning_recommendations", tuning);
             org.json.JSONArray recommendations = new org.json.JSONArray();
             if (memory.lowMemory) recommendations.put("Reduza a alocação Java ou feche apps em segundo plano.");
             if (getFreeStorageMb(gameDir) >= 0 && getFreeStorageMb(gameDir) < 2048) recommendations.put("Libere pelo menos 2 GB para bibliotecas, cache e mundos.");
