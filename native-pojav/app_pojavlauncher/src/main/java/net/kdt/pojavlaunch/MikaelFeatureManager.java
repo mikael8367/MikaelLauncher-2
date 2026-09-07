@@ -388,6 +388,7 @@ public final class MikaelFeatureManager {
             json.put("hidden_files_count", countHiddenFiles(gameDir));
             json.put("total_installation_size_mb", directorySizeMb(gameDir));
             json.put("latest_log_modified", fileModified(new File(gameDir, "logs/latest.log")));
+            json.put("diagnostic_freshness", diagnosticFreshness(gameDir));
             json.put("options_modified", fileModified(new File(gameDir, "options.txt")));
             json.put("mods_modified", directoryLatestModified(new File(gameDir, "mods")));
             json.put("latest_log_lines", countLines(new File(gameDir, "logs/latest.log")));
@@ -961,6 +962,25 @@ public final class MikaelFeatureManager {
             result.put("storage_below_1gb", freeMb >= 0 && freeMb < 1024);
             result.put("memory_pressure", lowMemory || (availableMb >= 0 && availableMb < 512));
             result.put("ready", !lowMemory && (availableMb < 0 || availableMb >= 256) && (freeMb < 0 || freeMb >= 1024));
+        } catch (Exception ignored) { }
+        return result;
+    }
+
+    private static org.json.JSONObject diagnosticFreshness(File gameDir) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        File log = new File(gameDir, "logs/latest.log");
+        File crash = newestFile(new File(gameDir, "crash-reports"), ".txt");
+        long now = System.currentTimeMillis();
+        long logAge = log.isFile() && log.lastModified() > 0L ? Math.max(0L, now - log.lastModified()) : -1L;
+        long crashAge = crash != null && crash.lastModified() > 0L ? Math.max(0L, now - crash.lastModified()) : -1L;
+        try {
+            result.put("latest_log_present", log.isFile());
+            result.put("latest_log_age_ms", logAge);
+            result.put("latest_log_fresh", logAge >= 0L && logAge < 86400000L);
+            result.put("newest_crash_present", crash != null);
+            result.put("newest_crash_age_ms", crashAge);
+            result.put("crash_after_log", crash != null && log.isFile() && crash.lastModified() > log.lastModified());
+            result.put("report_stale", !log.isFile() || logAge > 604800000L);
         } catch (Exception ignored) { }
         return result;
     }
