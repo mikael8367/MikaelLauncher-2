@@ -53,7 +53,7 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
             preference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
             return true;
         });
-        if ("adaptive".equals(memoryMode.getValue())) maxRAM += Math.min(getSwapMb() / 4, 2048);
+        if ("adaptive".equals(memoryMode.getValue())) maxRAM += getSwapBudgetMb();
 
         memorySeekbar.setMaxKeepIncrement(maxRAM);
         memorySeekbar.setValue(ramAllocation);
@@ -75,6 +75,13 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
             if (enable && getSwapMb() <= 0) {
                 Toast.makeText(requireContext(), "RAM Plus/Swap não foi detectada pelo Android.", Toast.LENGTH_LONG).show();
             }
+            return true;
+        });
+
+        Preference ramPlusLimit = requirePreference("ram_plus_limit_button", Preference.class);
+        updateRamPlusLimitSummary(ramPlusLimit);
+        ramPlusLimit.setOnPreferenceClickListener(preference -> {
+            showRamPlusLimitSelector(ramPlusLimit);
             return true;
         });
 
@@ -108,6 +115,31 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
             }
         } catch (Exception ignored) { }
         return 0;
+    }
+
+    private int getSwapBudgetMb() {
+        int percent = LauncherPreferences.DEFAULT_PREF.getInt("ram_plus_limit_percent", 25);
+        return Math.min(getSwapMb() * percent / 100, 4096);
+    }
+
+    private void showRamPlusLimitSelector(Preference preference) {
+        int[] percentages = {0, 25, 50, 75, 100};
+        String[] labels = {"0% — desativado", "25% — conservador", "50% — equilibrado", "75% — agressivo", "100% — máximo detectado"};
+        int current = LauncherPreferences.DEFAULT_PREF.getInt("ram_plus_limit_percent", 25);
+        int checked = 1;
+        for (int i = 0; i < percentages.length; i++) if (percentages[i] == current) checked = i;
+        final int[] selected = {checked};
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.mikael_ram_plus_limit_title)
+                .setMessage("Swap/RAM Plus detectada: " + getSwapMb() + " MB. O Android decide o uso físico real.")
+                .setSingleChoiceItems(labels, checked, (dialog, which) -> selected[0] = which)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    int percent = percentages[selected[0]];
+                    LauncherPreferences.DEFAULT_PREF.edit().putInt("ram_plus_limit_percent", percent).apply();
+                    updateRamPlusLimitSummary(preference);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     private void showRamSelector(CustomSeekBarPreference memorySeekbar, int maxRAM) {
@@ -158,5 +190,10 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
         } else {
             preference.setSummary("RAM Plus desativada; usar somente RAM física.");
         }
+    }
+
+    private void updateRamPlusLimitSummary(Preference preference) {
+        int percent = LauncherPreferences.DEFAULT_PREF.getInt("ram_plus_limit_percent", 25);
+        preference.setSummary(percent + "% do Swap considerado pelo launcher; limite suave, controlado pelo Android.");
     }
 }

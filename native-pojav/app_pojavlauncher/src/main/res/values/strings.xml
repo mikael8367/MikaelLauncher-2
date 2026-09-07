@@ -236,6 +236,8 @@
     <string name="mikael_ram_physical_info">Physical RAM: %1$d MB\nRAM Plus/Swap detected: %2$d MB\nRAM Plus is slower and cannot unlock physical RAM.</string>
     <string name="mikael_ram_plus_title">Usar RAM Plus</string>
     <string name="mikael_ram_plus_summary">Ativa o modo adaptativo e usa o Swap/RAM Plus detectado como complemento.</string>
+    <string name="mikael_ram_plus_limit_title">Limite de uso da RAM Plus</string>
+    <string name="mikael_ram_plus_limit_summary">Define o limite complementar considerado pelo launcher; o Android controla o uso real da Swap.</string>
     <string name="multirt_runtime_corrupt">Corrupted Java Runtime</string>
     <string name="multirt_runtime_incompatiblearch">Incompatible architecture: %s</string>
     <string name="multirt_config_title">Java Runtimes</string>
