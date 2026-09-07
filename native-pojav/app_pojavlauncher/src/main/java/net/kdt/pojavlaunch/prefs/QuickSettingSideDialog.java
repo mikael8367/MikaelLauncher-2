@@ -24,6 +24,8 @@ import net.kdt.pojavlaunch.MinecraftGLSurface;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.utils.interfaces.SimpleSeekBarListener;
 import net.kdt.pojavlaunch.utils.MCOptionUtils;
+import net.kdt.pojavlaunch.value.launcherprofiles.LauncherProfiles;
+import net.kdt.pojavlaunch.value.launcherprofiles.MinecraftProfile;
 import static net.kdt.pojavlaunch.PojavApplication.sExecutorService;
 
 /**
@@ -290,7 +292,8 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                 "ofAnimatedFire", "ofAnimatedPortal", "ofAnimatedTerrain", "ofAnimatedTextures",
                 "ofAnimatedExplosion", "ofAnimatedSmoke", "ofAnimatedFirework", "ofDynamicLights",
                 "ofFogType", "ofSmoothWorld", "ofRenderRegions", "ofFastMath", "ofAaLevel", "ofAfLevel",
-                "ofChunkUpdates", "ofLazyChunkLoading", "ofPreloadedChunks", "ofChunkLoading"
+                "ofChunkUpdates", "ofLazyChunkLoading", "ofPreloadedChunks", "ofChunkLoading",
+                "graphics", "clouds", "biomeBlendRadius", "ao", "prioritizeChunkUpdates"
         };
         final SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
         try {
@@ -301,7 +304,11 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                     if (value != null) backup.putString("max_fps_backup_" + key, value);
                 }
                 backup.putBoolean("max_fps_backup_valid", true).apply();
-                MCOptionUtils.set("particles", "0");
+                boolean modern = isModernMinecraft();
+                // Modern versions use named option values and expose additional
+                // chunk/lighting controls. Legacy versions keep the numeric
+                // OptiFine-compatible values below.
+                MCOptionUtils.set("particles", modern ? "minimal" : "0");
                 MCOptionUtils.set("renderDistance", "5");
                 MCOptionUtils.set("simulationDistance", "5");
                 MCOptionUtils.set("entityDistanceScaling", "0.5");
@@ -335,6 +342,13 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                 MCOptionUtils.set("ofLazyChunkLoading", "true");
                 MCOptionUtils.set("ofPreloadedChunks", "0");
                 MCOptionUtils.set("ofChunkLoading", "1");
+                if (modern) {
+                    MCOptionUtils.set("graphics", "fast");
+                    MCOptionUtils.set("clouds", "false");
+                    MCOptionUtils.set("biomeBlendRadius", "0");
+                    MCOptionUtils.set("ao", "false");
+                    MCOptionUtils.set("prioritizeChunkUpdates", "true");
+                }
             } else if (prefs.getBoolean("max_fps_backup_valid", false)) {
                 for (String key : keys) {
                     String value = prefs.getString("max_fps_backup_" + key, null);
@@ -345,6 +359,21 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
             MCOptionUtils.save();
         } catch (Exception e) {
             android.util.Log.w("MikaelLauncher", "Não foi possível aplicar o modo Máximo FPS", e);
+        }
+    }
+
+    private boolean isModernMinecraft() {
+        try {
+            LauncherProfiles.load();
+            String selected = LauncherPreferences.DEFAULT_PREF.getString(LauncherPreferences.PREF_KEY_CURRENT_PROFILE, "");
+            if (LauncherProfiles.mainProfileJson == null || LauncherProfiles.mainProfileJson.profiles == null) return false;
+            MinecraftProfile profile = LauncherProfiles.mainProfileJson.profiles.get(selected);
+            String id = profile == null ? "" : profile.lastVersionId;
+            if (id == null) return false;
+            java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(?:^|[-_])1\\.(\\d+)").matcher(id);
+            return matcher.find() && Integer.parseInt(matcher.group(1)) >= 20;
+        } catch (Exception ignored) {
+            return false;
         }
     }
 
