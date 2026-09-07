@@ -37,6 +37,7 @@ import net.kdt.pojavlaunch.value.launcherprofiles.LauncherProfiles;
 import net.kdt.pojavlaunch.value.launcherprofiles.MinecraftProfile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class ProfileEditorFragment extends Fragment implements CropperUtils.Crop
     private String mProfileKey;
     private MinecraftProfile mTempProfile = null;
     private String mValueToConsume = "";
-    private Button mSaveButton, mDeleteButton, mControlSelectButton, mGameDirButton, mVersionSelectButton;
+    private Button mSaveButton, mDeleteButton, mControlSelectButton, mGameDirButton, mVersionSelectButton, mManageModsButton;
     private Spinner mDefaultRuntime, mDefaultRenderer;
     private EditText mDefaultName, mDefaultJvmArgument;
     private TextView mDefaultPath, mDefaultVersion, mDefaultControl;
@@ -120,6 +121,8 @@ public class ProfileEditorFragment extends Fragment implements CropperUtils.Crop
         View.OnClickListener versionSelectListener = getVersionSelectListener();
         mVersionSelectButton.setOnClickListener(versionSelectListener);
         mDefaultVersion.setOnClickListener(versionSelectListener);
+
+        mManageModsButton.setOnClickListener(v -> openCurseForgeForProfile());
 
         // Set up the icon change click listener
         mProfileIcon.setOnClickListener(v -> CropperUtils.startCropper(mCropperLauncher));
@@ -235,6 +238,20 @@ public class ProfileEditorFragment extends Fragment implements CropperUtils.Crop
         mVersionSelectButton = view.findViewById(R.id.vprof_editor_version_button);
         mGameDirButton = view.findViewById(R.id.vprof_editor_path_button);
         mProfileIcon = view.findViewById(R.id.vprof_editor_profile_icon);
+        mManageModsButton = view.findViewById(R.id.vprof_editor_manage_mods_button);
+    }
+
+    private void openCurseForgeForProfile() {
+        if (mTempProfile == null) return;
+        File profileDir = mTempProfile.gameDir == null || mTempProfile.gameDir.isEmpty()
+                ? new File(Tools.DIR_GAME_NEW) : Tools.getGameDirPath(mTempProfile);
+        LauncherPreferences.DEFAULT_PREF.edit()
+                .putString("curseforge_target_game_dir", profileDir.getAbsolutePath())
+                .apply();
+        Bundle args = new Bundle();
+        args.putString("curseforge_target_game_dir", profileDir.getAbsolutePath());
+        args.putString("curseforge_mc_version", mTempProfile.lastVersionId);
+        Tools.swapFragment(requireActivity(), SearchModFragment.class, SearchModFragment.TAG, args);
     }
 
     private void save(){

@@ -33,13 +33,13 @@ public class MCOptionUtils {
     }
 
 
-    public static void load(){
+    public static synchronized void load(){
         load(sOptionFolderPath == null
                 ? Tools.DIR_GAME_NEW
                 : sOptionFolderPath);
     }
 
-    public static void load(@NonNull String folderPath) {
+    public static synchronized void load(@NonNull String folderPath) {
         File optionFile = new File(folderPath + "/options.txt");
         if(!optionFile.exists()) {
             try { // Needed for new instances I guess  :think:
@@ -72,7 +72,7 @@ public class MCOptionUtils {
         }
     }
 
-    public static void set(String key, String value) {
+    public static synchronized void set(String key, String value) {
         sParameterMap.put(key,value);
     }
 
@@ -81,7 +81,7 @@ public class MCOptionUtils {
         sParameterMap.put(key, values.toString());
     }
 
-    public static String get(String key){
+    public static synchronized String get(String key){
         return sParameterMap.get(key);
     }
 
@@ -99,7 +99,7 @@ public class MCOptionUtils {
         return Arrays.asList(value.split(","));
     }
 
-    public static void save() {
+    public static synchronized void save() {
         StringBuilder result = new StringBuilder();
         for(String key : sParameterMap.keySet())
             result.append(key)

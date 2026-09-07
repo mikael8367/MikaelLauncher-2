@@ -24,6 +24,7 @@ import net.kdt.pojavlaunch.MinecraftGLSurface;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.utils.interfaces.SimpleSeekBarListener;
 import net.kdt.pojavlaunch.utils.MCOptionUtils;
+import static net.kdt.pojavlaunch.PojavApplication.sExecutorService;
 
 /**
  * Side dialog for quick settings that you can change in game
@@ -144,7 +145,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
 
         mMaxFpsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             LauncherPreferences.DEFAULT_PREF.edit().putBoolean("max_fps_mode", isChecked).apply();
-            applyMaxFpsMode(isChecked);
+            sExecutorService.execute(() -> applyMaxFpsMode(isChecked));
         });
 
         mGyroSensitivityBar.setOnSeekBarChangeListener((SimpleSeekBarListener) (seekBar, progress, fromUser) -> {
@@ -260,7 +261,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
             PREF_SCALE_FACTOR = mOriginalResolution;
 
             if (LauncherPreferences.DEFAULT_PREF.getBoolean("max_fps_mode", false) != mOriginalMaxFps) {
-                applyMaxFpsMode(mOriginalMaxFps);
+                sExecutorService.execute(() -> applyMaxFpsMode(mOriginalMaxFps));
                 LauncherPreferences.DEFAULT_PREF.edit().putBoolean("max_fps_mode", mOriginalMaxFps).apply();
             }
 

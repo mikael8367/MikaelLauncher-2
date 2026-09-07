@@ -13,6 +13,7 @@ import net.kdt.pojavlaunch.modloaders.modpacks.models.ModItem;
 import net.kdt.pojavlaunch.modloaders.modpacks.models.SearchFilters;
 import net.kdt.pojavlaunch.modloaders.modpacks.models.SearchResult;
 import net.kdt.pojavlaunch.utils.DownloadUtils;
+import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 import net.kdt.pojavlaunch.value.launcherprofiles.LauncherProfiles;
 
 import java.io.File;
@@ -123,7 +124,11 @@ public class CommonApi implements ModpackApi {
 
     private void installIndividualContent(ModDetail detail, int selectedVersion) throws IOException {
         LauncherProfiles.load();
-        File base = Tools.getGameDirPath(LauncherProfiles.getCurrentProfile());
+            String targetDir = LauncherPreferences.DEFAULT_PREF.getString("curseforge_target_game_dir", null);
+            File base = targetDir == null || targetDir.isEmpty()
+                    ? Tools.getGameDirPath(LauncherProfiles.getCurrentProfile())
+                    : new File(targetDir);
+            if (!base.exists() && !base.mkdirs()) throw new IOException("Unable to create selected profile directory");
         String folder;
         switch (detail.contentType) {
             case SearchFilters.TYPE_RESOURCE_PACK: folder = "resourcepacks"; break;

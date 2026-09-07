@@ -266,6 +266,15 @@
                 app:layout_constraintEnd_toEndOf="@id/vprof_editor_profile_renderer"
                 app:layout_constraintTop_toTopOf="@id/vprof_editor_profile_renderer" />
 
+            <Button
+                android:id="@+id/vprof_editor_manage_mods_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/mikael_manage_mods_curseforge"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/vprof_editor_profile_renderer" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

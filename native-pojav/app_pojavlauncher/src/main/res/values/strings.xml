@@ -56,6 +56,8 @@
     <string name="mikael_renderer_debug">Diagnóstico — logs gráficos detalhados</string>
     <string name="mikael_max_fps_title">Máximo FPS</string>
     <string name="mikael_max_fps_summary">Remove partículas e animações, reduz chunks e entidades para priorizar desempenho.</string>
+    <string name="mikael_manage_mods_curseforge">Gerenciar mods desta versão — CurseForge</string>
+    <string name="mikael_manage_mods_curseforge_summary">Pesquisar e instalar mods diretamente na pasta da versão selecionada.</string>
     <string name="mikael_shader_cache_title">Cache de shaders</string>
     <string name="mikael_shader_cache_summary">Mantém shaders compilados para reduzir stutter; desative apenas para diagnosticar cache corrompido.</string>
     <string name="mikael_zink_threaded_title">Threading do Zink/Mesa</string>

@@ -71,6 +71,14 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // You can only access resources after attaching to current context
+        if (getArguments() != null) {
+            mSearchFilters.mcVersion = getArguments().getString("curseforge_mc_version", "");
+            String targetDir = getArguments().getString("curseforge_target_game_dir", null);
+            if (targetDir != null) {
+                net.kdt.pojavlaunch.prefs.LauncherPreferences.DEFAULT_PREF.edit()
+                        .putString("curseforge_target_game_dir", targetDir).apply();
+            }
+        }
         mModItemAdapter = new ModItemAdapter(getResources(), modpackApi, this);
         ProgressKeeper.addTaskCountListener(mModItemAdapter);
         mOverlayTopCache = getResources().getDimension(R.dimen.fragment_padding_medium);
