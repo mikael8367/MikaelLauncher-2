@@ -403,6 +403,15 @@ public final class MikaelFeatureManager {
             json.put("zero_byte_mods", countZeroByteFiles(new File(gameDir, "mods"), ".jar"));
             json.put("orphan_versions", countOrphanVersions(new File(gameDir, "versions")));
             json.put("incomplete_manifests", countIncompleteManifests(new File(gameDir, "versions")));
+            json.put("temporary_downloads", countTemporaryFiles(gameDir));
+            json.put("manifest_sha256", sha256(new File(gameDir, "launcher_profiles.json")));
+            json.put("latest_version_manifest_sha256", sha256(latestVersionManifest(new File(gameDir, "versions"))));
+            int integrityIssues = countInvalidJson(new File(gameDir, "versions"))
+                    + countZeroByteFiles(new File(gameDir, "libraries"), ".jar")
+                    + countZeroByteFiles(new File(gameDir, "mods"), ".jar")
+                    + countOrphanVersions(new File(gameDir, "versions"));
+            json.put("integrity_issue_count", integrityIssues);
+            json.put("integrity_severity", integrityIssues == 0 ? "none" : (integrityIssues < 3 ? "warning" : "critical"));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -625,6 +634,27 @@ public final class MikaelFeatureManager {
             if (manifest.isFile() && !isValidJson(manifest)) count++;
         }
         return count;
+    }
+
+    private static int countTemporaryFiles(File directory) {
+        int count = 0; File[] files = directory.listFiles();
+        if (files == null) return 0;
+        for (File file : files) {
+            if (file.isDirectory()) count += countTemporaryFiles(file);
+            else if (file.getName().endsWith(".part") || file.getName().endsWith(".tmp") || file.getName().endsWith(".download")) count++;
+        }
+        return count;
+    }
+
+    private static File latestVersionManifest(File versions) {
+        File latest = null; File[] manifests = versions.listFiles();
+        if (manifests == null) return null;
+        for (File file : manifests) {
+            if (!file.isDirectory()) continue;
+            File manifest = new File(file, file.getName() + ".json");
+            if (manifest.isFile() && (latest == null || manifest.lastModified() > latest.lastModified())) latest = manifest;
+        }
+        return latest;
     }
 
     private static String findRootCause(String text) {
