@@ -362,6 +362,14 @@ public final class MikaelFeatureManager {
             json.put("internet_permission", context.checkCallingOrSelfPermission("android.permission.INTERNET") == android.content.pm.PackageManager.PERMISSION_GRANTED);
             json.put("vulkan_feature", Tools.checkVulkanSupport(context.getPackageManager()));
             json.put("hardware", Build.HARDWARE);
+            json.put("mods_count", countFiles(new File(gameDir, "mods")));
+            json.put("worlds_count", countDirectories(new File(gameDir, "saves")));
+            json.put("resourcepacks_count", countFiles(new File(gameDir, "resourcepacks")));
+            json.put("shaderpacks_count", countFiles(new File(gameDir, "shaderpacks")));
+            json.put("libraries_count", countFiles(new File(gameDir, "libraries")));
+            json.put("logs_count", countFiles(new File(gameDir, "logs")));
+            json.put("options_exists", new File(gameDir, "options.txt").isFile());
+            json.put("versions_count", countDirectories(new File(gameDir, "versions")));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -452,6 +460,16 @@ public final class MikaelFeatureManager {
             if ("1".equals(value) || (i == 0 && "unavailable".equals(value))) online++;
         }
         return online;
+    }
+
+    private static int countFiles(File directory) {
+        File[] files = directory.listFiles(File::isFile);
+        return files == null ? 0 : files.length;
+    }
+
+    private static int countDirectories(File directory) {
+        File[] files = directory.listFiles(File::isDirectory);
+        return files == null ? 0 : files.length;
     }
 
     private static String findRootCause(String text) {
