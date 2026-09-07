@@ -6,6 +6,7 @@ import static net.kdt.pojavlaunch.Tools.getTotalDeviceMemory;
 import android.os.Bundle;
 import android.app.ActivityManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.preference.EditTextPreference;
@@ -62,6 +63,18 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
         Preference ramSelector = requirePreference("ram_available_button", Preference.class);
         ramSelector.setOnPreferenceClickListener(preference -> {
             showRamSelector(memorySeekbar, selectorMaxRAM);
+            return true;
+        });
+
+        Preference ramPlusButton = requirePreference("ram_plus_button", Preference.class);
+        updateRamPlusSummary(ramPlusButton, memoryMode.getValue());
+        ramPlusButton.setOnPreferenceClickListener(preference -> {
+            boolean enable = !"adaptive".equals(memoryMode.getValue());
+            memoryMode.setValue(enable ? "adaptive" : "physical");
+            updateRamPlusSummary(ramPlusButton, memoryMode.getValue());
+            if (enable && getSwapMb() <= 0) {
+                Toast.makeText(requireContext(), "RAM Plus/Swap não foi detectada pelo Android.", Toast.LENGTH_LONG).show();
+            }
             return true;
         });
 
@@ -137,5 +150,13 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
             }
         } catch (Exception ignored) { }
         return 0;
+    }
+
+    private void updateRamPlusSummary(Preference preference, String mode) {
+        if ("adaptive".equals(mode)) {
+            preference.setSummary("RAM Plus ativada: " + getSwapMb() + " MB detectados; usada como complemento mais lento.");
+        } else {
+            preference.setSummary("RAM Plus desativada; usar somente RAM física.");
+        }
     }
 }

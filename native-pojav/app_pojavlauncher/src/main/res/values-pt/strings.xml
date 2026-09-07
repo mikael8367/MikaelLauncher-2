@@ -149,6 +149,8 @@
     <string name="mikael_ram_selector_title">Selecionar RAM disponível</string>
     <string name="mikael_ram_selector_summary">Escolha uma quantidade segura de RAM física ou RAM Plus detectada.</string>
     <string name="mikael_ram_physical_info">RAM física: %1$d MB\nRAM Plus/Swap detectada: %2$d MB\nRAM Plus é mais lenta e não desbloqueia RAM física.</string>
+    <string name="mikael_ram_plus_title">Usar RAM Plus</string>
+    <string name="mikael_ram_plus_summary">Ativa o modo adaptativo e usa o Swap/RAM Plus detectado como complemento.</string>
     <string name="multirt_runtime_corrupt">Runtime do Java corrompida</string>
     <string name="multirt_runtime_incompatiblearch">Arquitetura incompatível: %s</string>
     <string name="multirt_config_title">Runtimes Java</string>

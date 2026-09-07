@@ -41,6 +41,11 @@
             android:title="@string/mikael_ram_selector_title"
             android:summary="@string/mikael_ram_selector_summary" />
 
+        <Preference
+            android:key="ram_plus_button"
+            android:title="@string/mikael_ram_plus_title"
+            android:summary="@string/mikael_ram_plus_summary" />
+
         <SwitchPreference
             android:defaultValue="true"
             android:key="java_sandbox"
