@@ -395,6 +395,10 @@ public final class MikaelFeatureManager {
             json.put("version_manifests", countExtensionRecursive(new File(gameDir, "versions"), ".json"));
             json.put("active_profile", LauncherPreferences.DEFAULT_PREF.getString("current_profile", "default"));
             json.put("profiles_file_size", fileSize(new File(gameDir, "launcher_profiles.json")));
+            json.put("invalid_version_json_count", countInvalidJson(new File(gameDir, "versions")));
+            json.put("versions_without_jar", countVersionsWithoutJar(new File(gameDir, "versions")));
+            json.put("libraries_without_files", countMissingLibraryFiles(new File(gameDir, "libraries")));
+            json.put("assets_index_count", countExtensionRecursive(new File(gameDir, "assets"), ".json"));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -555,6 +559,42 @@ public final class MikaelFeatureManager {
     }
 
     private static long fileSize(File file) { return file.isFile() ? file.length() : 0; }
+
+    private static int countInvalidJson(File directory) {
+        int invalid = 0;
+        File[] files = directory.listFiles();
+        if (files == null) return 0;
+        for (File file : files) {
+            if (file.isDirectory()) invalid += countInvalidJson(file);
+            else if (file.getName().endsWith(".json") && !isValidJson(file)) invalid++;
+        }
+        return invalid;
+    }
+
+    private static boolean isValidJson(File file) {
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            StringBuilder text = new StringBuilder(); String line;
+            while ((line = reader.readLine()) != null && text.length() < 2_000_000) text.append(line);
+            new org.json.JSONTokener(text.toString()).nextValue(); return true;
+        } catch (Exception e) { return false; }
+    }
+
+    private static int countVersionsWithoutJar(File versions) {
+        int missing = 0; File[] dirs = versions.listFiles(File::isDirectory);
+        if (dirs == null) return 0;
+        for (File dir : dirs) if (!new File(dir, dir.getName() + ".jar").isFile()) missing++;
+        return missing;
+    }
+
+    private static int countMissingLibraryFiles(File libraries) {
+        int missing = 0; File[] files = libraries.listFiles();
+        if (files == null) return 0;
+        for (File file : files) {
+            if (file.isDirectory()) missing += countMissingLibraryFiles(file);
+            else if (file.getName().endsWith(".lastUpdated")) missing++;
+        }
+        return missing;
+    }
 
     private static String findRootCause(String text) {
         String[] lines = text.split("\\n");
