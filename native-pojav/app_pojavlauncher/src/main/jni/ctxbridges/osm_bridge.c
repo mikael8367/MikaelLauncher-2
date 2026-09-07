@@ -8,6 +8,8 @@
 #define TAG __FILE_NAME__
 #include <log.h>
 
+extern void mikael_fps_record_frame(void);
+
 static __thread osm_render_window_t* currentBundle;
 // a tiny buffer for rendering when there's nowhere t render
 static char no_render_buffer[4];
@@ -122,9 +124,12 @@ void osm_swap_buffers() {
     osm_apply_current_ll();
     glFinish_p(); // this will force osmesa to write the last rendered image into the buffer
 
-    if(currentBundle->nativeSurface != NULL && !currentBundle->disable_rendering)
+    if(currentBundle->nativeSurface != NULL && !currentBundle->disable_rendering) {
         if(ANativeWindow_unlockAndPost(currentBundle->nativeSurface) != 0)
             osm_release_window();
+        else
+            mikael_fps_record_frame();
+    }
 }
 
 void osm_setup_window() {
