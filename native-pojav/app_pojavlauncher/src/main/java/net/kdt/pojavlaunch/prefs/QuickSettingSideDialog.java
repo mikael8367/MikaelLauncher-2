@@ -23,6 +23,7 @@ import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.MinecraftGLSurface;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.utils.interfaces.SimpleSeekBarListener;
+import net.kdt.pojavlaunch.utils.MCOptionUtils;
 
 /**
  * Side dialog for quick settings that you can change in game
@@ -32,13 +33,14 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
 
     private SharedPreferences.Editor mEditor;
     @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private Switch mGyroSwitch, mGyroXSwitch, mGyroYSwitch, mGestureSwitch, mUncappedFpsSwitch, mShowFpsSwitch;
+    private Switch mGyroSwitch, mGyroXSwitch, mGyroYSwitch, mGestureSwitch, mUncappedFpsSwitch, mShowFpsSwitch, mMaxFpsSwitch;
     private CustomSeekbar mGyroSensitivityBar, mMouseSpeedBar, mGestureDelayBar, mResolutionBar;
     private TextView mGyroSensitivityText, mGyroSensitivityDisplayText, mMouseSpeedText, mGestureDelayText, mGestureDelayDisplayText, mResolutionText;
 
     private boolean mOriginalGyroEnabled, mOriginalGyroXEnabled, mOriginalGyroYEnabled, mOriginalGestureDisabled;
     private float mOriginalGyroSensitivity, mOriginalMouseSpeed, mOriginalResolution;
     private int mOriginalGestureDelay;
+    private boolean mOriginalMaxFps;
 
     public QuickSettingSideDialog(Context context, ViewGroup parent) {
         super(context, parent, R.layout.dialog_quick_setting);
@@ -68,6 +70,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGestureSwitch = mDialogContent.findViewById(R.id.checkboxGesture);
         mUncappedFpsSwitch = mDialogContent.findViewById(R.id.checkboxUncappedFps);
         mShowFpsSwitch = mDialogContent.findViewById(R.id.checkboxShowFps);
+        mMaxFpsSwitch = mDialogContent.findViewById(R.id.checkboxMaxFps);
 
         mGyroSensitivityBar = mDialogContent.findViewById(R.id.editGyro_seekbar);
         mMouseSpeedBar = mDialogContent.findViewById(R.id.editMouseSpeed_seekbar);
@@ -101,6 +104,8 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGestureSwitch.setChecked(mOriginalGestureDisabled);
         mUncappedFpsSwitch.setChecked(LauncherPreferences.DEFAULT_PREF.getBoolean("uncapped_fps", false));
         mShowFpsSwitch.setChecked(LauncherPreferences.DEFAULT_PREF.getBoolean("show_fps_overlay", false));
+        mOriginalMaxFps = LauncherPreferences.DEFAULT_PREF.getBoolean("max_fps_mode", false);
+        mMaxFpsSwitch.setChecked(mOriginalMaxFps);
 
         mGyroSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             PREF_ENABLE_GYRO = isChecked;
@@ -135,6 +140,11 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mShowFpsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             mEditor.putBoolean("show_fps_overlay", isChecked);
             MinecraftGLSurface.setFpsOverlayEnabled(isChecked);
+        });
+
+        mMaxFpsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            LauncherPreferences.DEFAULT_PREF.edit().putBoolean("max_fps_mode", isChecked).apply();
+            applyMaxFpsMode(isChecked);
         });
 
         mGyroSensitivityBar.setOnSeekBarChangeListener((SimpleSeekBarListener) (seekBar, progress, fromUser) -> {
@@ -219,6 +229,7 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         mGestureSwitch.setOnCheckedChangeListener(null);
         mUncappedFpsSwitch.setOnCheckedChangeListener(null);
         mShowFpsSwitch.setOnCheckedChangeListener(null);
+        mMaxFpsSwitch.setOnCheckedChangeListener(null);
 
         mGyroSensitivityBar.setOnSeekBarChangeListener(null);
         mMouseSpeedBar.setOnSeekBarChangeListener(null);
@@ -248,6 +259,11 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
             PREF_LONGPRESS_TRIGGER = mOriginalGestureDelay;
             PREF_SCALE_FACTOR = mOriginalResolution;
 
+            if (LauncherPreferences.DEFAULT_PREF.getBoolean("max_fps_mode", false) != mOriginalMaxFps) {
+                applyMaxFpsMode(mOriginalMaxFps);
+                LauncherPreferences.DEFAULT_PREF.edit().putBoolean("max_fps_mode", mOriginalMaxFps).apply();
+            }
+
             onGyroStateChanged();
             onResolutionChanged();
         }
@@ -264,5 +280,57 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
      * Use {@link LauncherPreferences#PREF_GYRO_INVERT_Y}
      */
     public abstract void onGyroStateChanged();
+
+    private void applyMaxFpsMode(boolean enabled) {
+        final String[] keys = {
+                "particles", "renderDistance", "simulationDistance", "entityDistanceScaling",
+                "entityShadows", "fancyGraphics", "smoothLighting", "renderClouds", "useVbo",
+                "mipmapLevels", "enableVsync", "maxFps", "ofAnimatedWater", "ofAnimatedLava",
+                "ofAnimatedFire", "ofAnimatedPortal", "ofAnimatedTerrain", "ofAnimatedTextures",
+                "ofDynamicLights", "ofFogType", "ofSmoothWorld", "ofRenderRegions"
+        };
+        final SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
+        try {
+            if (enabled) {
+                SharedPreferences.Editor backup = prefs.edit();
+                for (String key : keys) {
+                    String value = MCOptionUtils.get(key);
+                    if (value != null) backup.putString("max_fps_backup_" + key, value);
+                }
+                backup.putBoolean("max_fps_backup_valid", true).apply();
+                MCOptionUtils.set("particles", "0");
+                MCOptionUtils.set("renderDistance", "5");
+                MCOptionUtils.set("simulationDistance", "5");
+                MCOptionUtils.set("entityDistanceScaling", "0.5");
+                MCOptionUtils.set("entityShadows", "false");
+                MCOptionUtils.set("fancyGraphics", "false");
+                MCOptionUtils.set("smoothLighting", "false");
+                MCOptionUtils.set("renderClouds", "false");
+                MCOptionUtils.set("useVbo", "true");
+                MCOptionUtils.set("mipmapLevels", "0");
+                MCOptionUtils.set("enableVsync", "false");
+                MCOptionUtils.set("maxFps", "260");
+                MCOptionUtils.set("ofAnimatedWater", "0");
+                MCOptionUtils.set("ofAnimatedLava", "0");
+                MCOptionUtils.set("ofAnimatedFire", "0");
+                MCOptionUtils.set("ofAnimatedPortal", "0");
+                MCOptionUtils.set("ofAnimatedTerrain", "0");
+                MCOptionUtils.set("ofAnimatedTextures", "false");
+                MCOptionUtils.set("ofDynamicLights", "3");
+                MCOptionUtils.set("ofFogType", "1");
+                MCOptionUtils.set("ofSmoothWorld", "false");
+                MCOptionUtils.set("ofRenderRegions", "true");
+            } else if (prefs.getBoolean("max_fps_backup_valid", false)) {
+                for (String key : keys) {
+                    String value = prefs.getString("max_fps_backup_" + key, null);
+                    if (value != null) MCOptionUtils.set(key, value);
+                }
+                prefs.edit().putBoolean("max_fps_backup_valid", false).apply();
+            }
+            MCOptionUtils.save();
+        } catch (Exception e) {
+            android.util.Log.w("MikaelLauncher", "Não foi possível aplicar o modo Máximo FPS", e);
+        }
+    }
 
 }

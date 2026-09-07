@@ -220,4 +220,14 @@
         app:layout_constraintTop_toBottomOf="@id/checkboxUncappedFps"
         tools:ignore="UseSwitchCompatOrMaterialXml" />
 
+    <Switch
+        android:id="@+id/checkboxMaxFps"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_36sdp"
+        android:text="@string/mikael_max_fps_title"
+        android:contentDescription="@string/mikael_max_fps_summary"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/checkboxShowFps"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
