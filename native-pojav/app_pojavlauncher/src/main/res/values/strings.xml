@@ -49,6 +49,15 @@
     <string name="mikael_memory_mode_summary">Física é mais rápida; Adaptativa usa o swap/RAM Plus detectado sem prometer a mesma velocidade.</string>
     <string name="mikael_memory_physical">RAM física — melhor desempenho</string>
     <string name="mikael_memory_adaptive">Adaptativa — RAM física + swap disponível</string>
+    <string name="mikael_renderer_profile_title">Perfil do renderizador</string>
+    <string name="mikael_renderer_profile_summary">Ajusta compatibilidade, cache e overhead conforme o renderer escolhido.</string>
+    <string name="mikael_renderer_performance">Desempenho — menor overhead</string>
+    <string name="mikael_renderer_compatibility">Compatibilidade — mais validações</string>
+    <string name="mikael_renderer_debug">Diagnóstico — logs gráficos detalhados</string>
+    <string name="mikael_shader_cache_title">Cache de shaders</string>
+    <string name="mikael_shader_cache_summary">Mantém shaders compilados para reduzir stutter; desative apenas para diagnosticar cache corrompido.</string>
+    <string name="mikael_zink_threaded_title">Threading do Zink/Mesa</string>
+    <string name="mikael_zink_threaded_summary">Ativa mesa_glthread quando disponível; pode melhorar FPS ou expor bugs de driver.</string>
 
     <!-- Action bar part -->
 

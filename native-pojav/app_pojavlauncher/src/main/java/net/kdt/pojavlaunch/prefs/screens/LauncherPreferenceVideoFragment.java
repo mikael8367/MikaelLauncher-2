@@ -64,6 +64,15 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         Tools.RenderersList renderersList = Tools.getCompatibleRenderers(getContext());
         rendererListPreference.setEntries(renderersList.rendererDisplayNames);
         rendererListPreference.setEntryValues(renderersList.rendererIds.toArray(new String[0]));
+        rendererListPreference.setOnPreferenceChangeListener((preference, value) -> {
+            updateRendererVisibility(String.valueOf(value));
+            return true;
+        });
+        requirePreference("shader_cache_enabled", SwitchPreferenceCompat.class)
+                .setChecked(LauncherPreferences.PREF_SHADER_CACHE_ENABLED);
+        requirePreference("zink_threaded", SwitchPreferenceCompat.class)
+                .setChecked(LauncherPreferences.PREF_ZINK_THREADED);
+        updateRendererVisibility(rendererListPreference.getValue());
 
         computeVisibility();
     }
@@ -82,6 +91,12 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
             LauncherPreferences.PREF_BIG_CORE_AFFINITY = p.getBoolean(s, false);
         } else if ("alternate_surface".equals(s)) {
             LauncherPreferences.PREF_USE_ALTERNATE_SURFACE = p.getBoolean(s, true);
+        } else if ("shader_cache_enabled".equals(s)) {
+            LauncherPreferences.PREF_SHADER_CACHE_ENABLED = p.getBoolean(s, true);
+        } else if ("zink_threaded".equals(s)) {
+            LauncherPreferences.PREF_ZINK_THREADED = p.getBoolean(s, true);
+        } else if ("renderer_profile".equals(s)) {
+            LauncherPreferences.PREF_RENDERER_PROFILE = p.getString(s, "performance");
         }
         computeVisibility();
     }
@@ -110,5 +125,10 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
     private void computeVisibility(){
         requirePreference("force_vsync", SwitchPreferenceCompat.class)
                 .setVisible(LauncherPreferences.PREF_USE_ALTERNATE_SURFACE);
+    }
+
+    private void updateRendererVisibility(String renderer) {
+        boolean zink = renderer != null && renderer.contains("zink");
+        requirePreference("zink_threaded", SwitchPreferenceCompat.class).setVisible(zink);
     }
 }

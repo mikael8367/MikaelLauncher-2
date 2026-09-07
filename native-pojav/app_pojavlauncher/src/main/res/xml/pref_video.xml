@@ -18,6 +18,23 @@
             android:defaultValue="opengles2"
             android:icon="@drawable/ic_setting_engine"
             app2:useSimpleSummaryProvider="true"/>
+        <androidx.preference.ListPreference
+            android:key="renderer_profile"
+            android:defaultValue="performance"
+            android:entries="@array/mikael_renderer_profile_entries"
+            android:entryValues="@array/mikael_renderer_profile_values"
+            android:title="@string/mikael_renderer_profile_title"
+            android:summary="@string/mikael_renderer_profile_summary" />
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="shader_cache_enabled"
+            android:defaultValue="true"
+            android:title="@string/mikael_shader_cache_title"
+            android:summary="@string/mikael_shader_cache_summary" />
+        <androidx.preference.SwitchPreferenceCompat
+            android:key="zink_threaded"
+            android:defaultValue="true"
+            android:title="@string/mikael_zink_threaded_title"
+            android:summary="@string/mikael_zink_threaded_summary" />
 
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"

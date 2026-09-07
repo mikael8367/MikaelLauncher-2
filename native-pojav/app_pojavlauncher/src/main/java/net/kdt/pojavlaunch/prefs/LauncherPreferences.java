@@ -67,6 +67,9 @@ public class LauncherPreferences {
     public static String PREF_DOWNLOAD_SOURCE = "default";
     public static boolean PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = false;
     public static boolean PREF_VSYNC_IN_ZINK = true;
+    public static boolean PREF_SHADER_CACHE_ENABLED = true;
+    public static boolean PREF_ZINK_THREADED = true;
+    public static String PREF_RENDERER_PROFILE = "performance";
 
 
     public static void loadPreferences(Context ctx) {
@@ -109,6 +112,9 @@ public class LauncherPreferences {
         PREF_VERIFY_MANIFEST = DEFAULT_PREF.getBoolean("verifyManifest", true);
         PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = DEFAULT_PREF.getBoolean(PREF_KEY_SKIP_NOTIFICATION_CHECK, false);
         PREF_VSYNC_IN_ZINK = DEFAULT_PREF.getBoolean("vsync_in_zink", true);
+        PREF_SHADER_CACHE_ENABLED = DEFAULT_PREF.getBoolean("shader_cache_enabled", true);
+        PREF_ZINK_THREADED = DEFAULT_PREF.getBoolean("zink_threaded", true);
+        PREF_RENDERER_PROFILE = DEFAULT_PREF.getString("renderer_profile", "performance");
 
         if ("turbo".equals(DEFAULT_PREF.getString("performance_profile", "balanced"))) {
             PREF_SUSTAINED_PERFORMANCE = false;

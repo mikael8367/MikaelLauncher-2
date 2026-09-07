@@ -47,6 +47,16 @@
         <item>physical</item>
         <item>adaptive</item>
     </string-array>
+    <string-array name="mikael_renderer_profile_entries">
+        <item>@string/mikael_renderer_performance</item>
+        <item>@string/mikael_renderer_compatibility</item>
+        <item>@string/mikael_renderer_debug</item>
+    </string-array>
+    <string-array name="mikael_renderer_profile_values">
+        <item>performance</item>
+        <item>compatibility</item>
+        <item>debug</item>
+    </string-array>
     <string-array name="download_source_names">
         <item>@string/global_default</item>
         <item>BMCLAPI</item>
