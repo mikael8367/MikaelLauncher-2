@@ -269,12 +269,20 @@ public final class MikaelFeatureManager {
             json.put("timestamp", System.currentTimeMillis());
             json.put("android", Build.VERSION.RELEASE);
             json.put("api", Build.VERSION.SDK_INT);
+            json.put("manufacturer", Build.MANUFACTURER);
+            json.put("model", Build.MODEL);
+            json.put("device", Build.DEVICE);
+            json.put("board", Build.BOARD);
+            json.put("kernel", System.getProperty("os.version", "unknown"));
             json.put("abi", Build.SUPPORTED_ABIS.length == 0 ? "unknown" : Build.SUPPORTED_ABIS[0]);
+            json.put("abis", new org.json.JSONArray(java.util.Arrays.asList(Build.SUPPORTED_ABIS)));
             json.put("processors", Runtime.getRuntime().availableProcessors());
             json.put("physical_memory_mb", Tools.getTotalDeviceMemory(context));
             json.put("free_storage_mb", getFreeStorageMb(gameDir));
             json.put("log_size_mb", getLogSizeMb(gameDir));
             json.put("crash_reports", countCrashReports(gameDir));
+            json.put("latest_log_sha256", sha256(new File(gameDir, "logs/latest.log")));
+            json.put("latest_crash_sha256", sha256(newestFile(new File(gameDir, "crash-reports"), ".txt")));
             json.put("renderer", LauncherPreferences.PREF_RENDERER);
             json.put("renderer_profile", LauncherPreferences.PREF_RENDERER_PROFILE);
             json.put("memory_mode", LauncherPreferences.DEFAULT_PREF.getString("memory_mode", "physical"));
@@ -285,6 +293,19 @@ public final class MikaelFeatureManager {
             json.put("compatible_renderers", new org.json.JSONArray(Tools.getCompatibleRenderers(context).rendererIds));
             try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) { out.println(json.toString(2)); }
         } catch (Exception e) { Log.w(TAG, "Could not write JSON diagnostic report", e); }
+    }
+
+    private static String sha256(File file) {
+        if (file == null || !file.isFile()) return "missing";
+        try (java.io.InputStream in = new FileInputStream(file)) {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) digest.update(buffer, 0, read);
+            StringBuilder hex = new StringBuilder();
+            for (byte value : digest.digest()) hex.append(String.format(Locale.US, "%02x", value));
+            return hex.toString();
+        } catch (Exception e) { return "unavailable"; }
     }
 
     private static String findRootCause(String text) {
