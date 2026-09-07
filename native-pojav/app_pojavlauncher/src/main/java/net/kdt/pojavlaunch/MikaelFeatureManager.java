@@ -269,6 +269,10 @@ public final class MikaelFeatureManager {
             json.put("timestamp", System.currentTimeMillis());
             json.put("android", Build.VERSION.RELEASE);
             json.put("api", Build.VERSION.SDK_INT);
+            json.put("java_runtime", System.getProperty("java.runtime.version", "unknown"));
+            json.put("locale", Locale.getDefault().toLanguageTag());
+            json.put("timezone", java.util.TimeZone.getDefault().getID());
+            json.put("uptime_ms", android.os.SystemClock.elapsedRealtime());
             json.put("manufacturer", Build.MANUFACTURER);
             json.put("model", Build.MODEL);
             json.put("device", Build.DEVICE);
@@ -278,6 +282,12 @@ public final class MikaelFeatureManager {
             json.put("abis", new org.json.JSONArray(java.util.Arrays.asList(Build.SUPPORTED_ABIS)));
             json.put("processors", Runtime.getRuntime().availableProcessors());
             json.put("physical_memory_mb", Tools.getTotalDeviceMemory(context));
+            json.put("swap_total_mb", readMemInfoMb("SwapTotal"));
+            json.put("swap_free_mb", readMemInfoMb("SwapFree"));
+            android.util.DisplayMetrics display = context.getResources().getDisplayMetrics();
+            json.put("screen_width_px", display.widthPixels);
+            json.put("screen_height_px", display.heightPixels);
+            json.put("screen_density", display.density);
             ActivityManager.MemoryInfo memory = new ActivityManager.MemoryInfo();
             ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
             if (manager != null) {
@@ -294,6 +304,12 @@ public final class MikaelFeatureManager {
                 json.put("battery_temperature_c", battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1) / 10.0);
                 json.put("battery_status", battery.getIntExtra(BatteryManager.EXTRA_STATUS, -1));
                 json.put("battery_plugged", battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1));
+                json.put("battery_voltage_mv", battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1));
+                json.put("battery_health", battery.getIntExtra(BatteryManager.EXTRA_HEALTH, -1));
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                android.os.PowerManager power = (android.os.PowerManager) context.getSystemService(Context.POWER_SERVICE);
+                if (power != null) json.put("thermal_status", power.getCurrentThermalStatus());
             }
             json.put("free_storage_mb", getFreeStorageMb(gameDir));
             json.put("log_size_mb", getLogSizeMb(gameDir));
@@ -323,6 +339,19 @@ public final class MikaelFeatureManager {
             for (byte value : digest.digest()) hex.append(String.format(Locale.US, "%02x", value));
             return hex.toString();
         } catch (Exception e) { return "unavailable"; }
+    }
+
+    private static long readMemInfoMb(String key) {
+        try {
+            String memInfo = Tools.read("/proc/meminfo");
+            for (String line : memInfo.split("\\n")) {
+                if (line.startsWith(key + ":")) {
+                    String digits = line.replaceAll("[^0-9]", "").trim();
+                    return Long.parseLong(digits) / 1024;
+                }
+            }
+        } catch (Exception ignored) { }
+        return -1;
     }
 
     private static String findRootCause(String text) {
