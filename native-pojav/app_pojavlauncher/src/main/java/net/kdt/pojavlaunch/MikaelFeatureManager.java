@@ -353,6 +353,15 @@ public final class MikaelFeatureManager {
             json.put("cpu_count_online", countOnlineCpus());
             json.put("storage_total_mb", gameDir.getTotalSpace() / 1024 / 1024);
             json.put("storage_usable_mb", gameDir.getUsableSpace() / 1024 / 1024);
+            json.put("game_dir_exists", gameDir.isDirectory());
+            json.put("game_dir_readable", gameDir.canRead());
+            json.put("game_dir_writable", gameDir.canWrite());
+            json.put("cache_dir_exists", Tools.DIR_CACHE != null && Tools.DIR_CACHE.isDirectory());
+            json.put("cache_dir_usable_mb", Tools.DIR_CACHE == null ? -1 : Tools.DIR_CACHE.getUsableSpace() / 1024 / 1024);
+            json.put("native_lib_dir_exists", Tools.NATIVE_LIB_DIR != null && new File(Tools.NATIVE_LIB_DIR).isDirectory());
+            json.put("internet_permission", context.checkCallingOrSelfPermission("android.permission.INTERNET") == android.content.pm.PackageManager.PERMISSION_GRANTED);
+            json.put("vulkan_feature", Tools.checkVulkanSupport(context.getPackageManager()));
+            json.put("hardware", Build.HARDWARE);
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
