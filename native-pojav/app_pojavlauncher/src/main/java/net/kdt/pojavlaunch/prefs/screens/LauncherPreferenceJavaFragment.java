@@ -4,11 +4,13 @@ import static net.kdt.pojavlaunch.Architecture.is32BitsDevice;
 import static net.kdt.pojavlaunch.Tools.getTotalDeviceMemory;
 
 import android.os.Bundle;
+import android.app.ActivityManager;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
+import androidx.preference.Preference;
 
 import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
@@ -56,6 +58,13 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
         memorySeekbar.setValue(ramAllocation);
         memorySeekbar.setSuffix(" MB");
 
+        final int selectorMaxRAM = maxRAM;
+        Preference ramSelector = requirePreference("ram_available_button", Preference.class);
+        ramSelector.setOnPreferenceClickListener(preference -> {
+            showRamSelector(memorySeekbar, selectorMaxRAM);
+            return true;
+        });
+
         EditTextPreference editJVMArgs = findPreference("javaArgs");
         if (editJVMArgs != null) {
             editJVMArgs.setOnBindEditTextListener(TextView::setSingleLine);
@@ -83,6 +92,48 @@ public class LauncherPreferenceJavaFragment extends LauncherPreferenceFragment {
                     String[] parts = line.trim().split("\\s+");
                     return Integer.parseInt(parts[1]) / 1024;
                 }
+            }
+        } catch (Exception ignored) { }
+        return 0;
+    }
+
+    private void showRamSelector(CustomSeekBarPreference memorySeekbar, int maxRAM) {
+        if (getContext() == null) return;
+        int available = getAvailableRamMb();
+        int physical = getTotalDeviceMemory(getContext());
+        int safeMax = Math.min(maxRAM, Math.max(1024, available > 0 ? available - 512 : maxRAM));
+        java.util.ArrayList<Integer> values = new java.util.ArrayList<>();
+        for (int value = 1024; value <= safeMax; value += 512) values.add(value);
+        if (values.isEmpty() || values.get(values.size() - 1) != safeMax) values.add(safeMax);
+        String[] labels = new String[values.size()];
+        int checked = 0;
+        int current = LauncherPreferences.PREF_RAM_ALLOCATION;
+        for (int i = 0; i < values.size(); i++) {
+            labels[i] = values.get(i) + " MB";
+            if (Math.abs(values.get(i) - current) < Math.abs(values.get(checked) - current)) checked = i;
+        }
+        final int[] selected = {checked};
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.mikael_ram_selector_title)
+                .setMessage(getString(R.string.mikael_ram_physical_info, physical, getSwapMb()))
+                .setSingleChoiceItems(labels, checked, (dialog, which) -> selected[0] = which)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    int chosen = values.get(selected[0]);
+                    LauncherPreferences.PREF_RAM_ALLOCATION = chosen;
+                    LauncherPreferences.DEFAULT_PREF.edit().putInt("allocation", chosen).apply();
+                    memorySeekbar.setValue(chosen);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private int getAvailableRamMb() {
+        try {
+            ActivityManager manager = (ActivityManager) requireContext().getSystemService(android.content.Context.ACTIVITY_SERVICE);
+            ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
+            if (manager != null) {
+                manager.getMemoryInfo(info);
+                return (int) (info.availMem / 1024 / 1024);
             }
         } catch (Exception ignored) { }
         return 0;

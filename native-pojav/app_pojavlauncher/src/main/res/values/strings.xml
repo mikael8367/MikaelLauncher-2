@@ -231,6 +231,9 @@
     <string name="address_memory_warning_msg">The current amount of free addressable RAM space (%d) is lower than the allocated RAM (%d), which will lead to crashes. Change the allocation if the game crashes.</string>
     <string name="mcl_memory_allocation">Memory allocation</string>
     <string name="mcl_memory_allocation_subtitle">Controls how much memory is given to Minecraft.</string>
+    <string name="mikael_ram_selector_title">Select available RAM</string>
+    <string name="mikael_ram_selector_summary">Choose a safe amount of physical RAM or detected RAM Plus.</string>
+    <string name="mikael_ram_physical_info">Physical RAM: %1$d MB\nRAM Plus/Swap detected: %2$d MB\nRAM Plus is slower and cannot unlock physical RAM.</string>
     <string name="multirt_runtime_corrupt">Corrupted Java Runtime</string>
     <string name="multirt_runtime_incompatiblearch">Incompatible architecture: %s</string>
     <string name="multirt_config_title">Java Runtimes</string>

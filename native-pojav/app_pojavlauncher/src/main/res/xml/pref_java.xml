@@ -36,6 +36,11 @@
             app2:seekBarIncrement="@integer/memory_seekbar_increment"
             app2:selectable="false"/>
 
+        <Preference
+            android:key="ram_available_button"
+            android:title="@string/mikael_ram_selector_title"
+            android:summary="@string/mikael_ram_selector_summary" />
+
         <SwitchPreference
             android:defaultValue="true"
             android:key="java_sandbox"
