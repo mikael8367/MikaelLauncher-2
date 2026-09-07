@@ -467,6 +467,7 @@ public final class MikaelFeatureManager {
             json.put("downloads_dir_exists", new File(gameDir, "downloads").isDirectory());
             json.put("download_temp_count", countTemporaryFiles(new File(gameDir, "downloads")));
             json.put("download_partial_count", countFilesWithSuffix(new File(gameDir, "downloads"), ".part"));
+            json.put("download_queue", downloadQueueHealth(new File(gameDir, "downloads")));
             json.put("http_cache_size_mb", directorySizeMb(new File(gameDir, "cache")));
             json.put("tls_default_protocol", defaultTlsProtocol());
             json.put("pending_queue_count", countFilesWithName(gameDir, "queue", ""));
@@ -849,6 +850,37 @@ public final class MikaelFeatureManager {
             result.put("zink_ready", renderer.contains("zink") && vulkan && arm64);
             result.put("gl4es_ready", renderer.contains("gl4es") || !renderer.contains("zink"));
             result.put("warning", renderer.contains("zink") && !vulkan ? "Vulkan não detectado para o renderer selecionado" : "");
+        } catch (Exception ignored) { }
+        return result;
+    }
+
+    private static org.json.JSONObject downloadQueueHealth(File downloads) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        long bytes = 0L;
+        long oldest = 0L;
+        int partial = 0;
+        int temporary = 0;
+        File[] files = downloads.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (!file.isFile()) continue;
+                String name = file.getName().toLowerCase(Locale.US);
+                if (name.endsWith(".part") || name.endsWith(".tmp") || name.endsWith(".download")) {
+                    temporary++;
+                    bytes += Math.max(0L, file.length());
+                    long modified = file.lastModified();
+                    if (modified > 0L && (oldest == 0L || modified < oldest)) oldest = modified;
+                    if (name.endsWith(".part")) partial++;
+                }
+            }
+        }
+        try {
+            result.put("pending_files", temporary);
+            result.put("partial_files", partial);
+            result.put("pending_bytes", bytes);
+            result.put("oldest_pending_age_ms", oldest == 0L ? 0L : Math.max(0L, System.currentTimeMillis() - oldest));
+            result.put("needs_recovery", temporary > 0 && oldest > 0L && System.currentTimeMillis() - oldest > 86400000L);
+            result.put("directory_present", downloads.isDirectory());
         } catch (Exception ignored) { }
         return result;
     }
