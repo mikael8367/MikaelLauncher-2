@@ -482,6 +482,7 @@ public final class MikaelFeatureManager {
             json.put("external_storage_free_mb", external == null ? -1 : external.getUsableSpace() / 1024 / 1024);
             json.put("storage_state", android.os.Environment.getExternalStorageState());
             json.put("storage_manager_available", context.getSystemService(Context.STORAGE_SERVICE) != null);
+            json.put("launch_readiness", launchReadiness(context, gameDir));
             json.put("data_dir_size_mb", directorySizeMb(context.getFilesDir()));
             android.content.pm.ApplicationInfo appInfo = context.getApplicationInfo();
             json.put("target_sdk", appInfo.targetSdkVersion);
@@ -938,6 +939,29 @@ public final class MikaelFeatureManager {
         File[] files = directory.listFiles();
         if (files != null) for (File file : files) latest = Math.max(latest, file.lastModified());
         return latest;
+    }
+
+    private static org.json.JSONObject launchReadiness(Context context, File gameDir) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        long freeMb = getFreeStorageMb(gameDir);
+        long availableMb = -1L;
+        boolean lowMemory = false;
+        try {
+            ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
+            ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager != null) {
+                manager.getMemoryInfo(info);
+                availableMb = info.availMem / 1024 / 1024;
+                lowMemory = info.lowMemory;
+            }
+            result.put("available_memory_mb", availableMb);
+            result.put("free_storage_mb", freeMb);
+            result.put("low_memory", lowMemory);
+            result.put("storage_below_1gb", freeMb >= 0 && freeMb < 1024);
+            result.put("memory_pressure", lowMemory || (availableMb >= 0 && availableMb < 512));
+            result.put("ready", !lowMemory && (availableMb < 0 || availableMb >= 256) && (freeMb < 0 || freeMb >= 1024));
+        } catch (Exception ignored) { }
+        return result;
     }
 
     private static boolean containsName(File directory, String needle) {
