@@ -111,13 +111,15 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
     }
 
     private void applyPerformanceProfile(String profile) {
-        boolean turbo = "turbo".equals(profile);
+        boolean ultra = "ultra".equals(profile);
+        boolean turbo = "turbo".equals(profile) || ultra;
         boolean eco = "eco".equals(profile);
         LauncherPreferences.DEFAULT_PREF.edit()
                 .putBoolean("uncapped_fps", turbo)
                 .putBoolean("force_vsync", eco)
                 .putBoolean("sustainedPerformance", false)
                 .putBoolean("bigCoreAffinity", turbo)
+                .putBoolean("max_fps_mode", ultra)
                 .putBoolean("alternate_surface", !eco)
                 .apply();
         LauncherPreferences.PREF_FORCE_VSYNC = eco;

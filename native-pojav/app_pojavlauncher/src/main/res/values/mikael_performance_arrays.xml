@@ -1,11 +1,13 @@
 <resources>
     <string-array name="mikael_performance_profile_entries">
         <item>@string/mikael_profile_turbo</item>
+        <item>@string/mikael_profile_ultra</item>
         <item>@string/mikael_profile_balanced</item>
         <item>@string/mikael_profile_eco</item>
     </string-array>
     <string-array name="mikael_performance_profile_values">
         <item>turbo</item>
+        <item>ultra</item>
         <item>balanced</item>
         <item>eco</item>
     </string-array>

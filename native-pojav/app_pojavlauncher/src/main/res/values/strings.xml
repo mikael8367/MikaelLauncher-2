@@ -22,6 +22,7 @@
     <string name="mikael_performance_profile_title">Perfil de desempenho</string>
     <string name="mikael_performance_profile_summary">Escolha como o motor deve usar FPS, VSync, CPU e energia.</string>
     <string name="mikael_profile_turbo">Turbo — máximo FPS</string>
+    <string name="mikael_profile_ultra">Ultra FPS — todas as otimizações</string>
     <string name="mikael_profile_balanced">Equilibrado</string>
     <string name="mikael_profile_eco">Economia — menos calor</string>
     <string name="mikael_quick_fps">FPS sem limite (próximo lançamento)</string>

@@ -293,7 +293,9 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                 "ofAnimatedExplosion", "ofAnimatedSmoke", "ofAnimatedFirework", "ofDynamicLights",
                 "ofFogType", "ofSmoothWorld", "ofRenderRegions", "ofFastMath", "ofAaLevel", "ofAfLevel",
                 "ofChunkUpdates", "ofLazyChunkLoading", "ofPreloadedChunks", "ofChunkLoading",
-                "graphics", "clouds", "biomeBlendRadius", "ao", "prioritizeChunkUpdates"
+                "graphics", "clouds", "biomeBlendRadius", "ao", "prioritizeChunkUpdates",
+                "ofClearWater", "ofTrees", "ofDroppedItems", "ofRain", "ofSky", "ofStars",
+                "ofSunMoon", "ofAnimatedRain", "ofEntityDistance", "ofDynamicFov", "ofWeather"
         };
         final SharedPreferences prefs = LauncherPreferences.DEFAULT_PREF;
         try {
@@ -349,6 +351,19 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
                     MCOptionUtils.set("ao", "false");
                     MCOptionUtils.set("prioritizeChunkUpdates", "true");
                 }
+                // OptiFine-compatible options differ between versions. Only write an
+                // optional setting when that version already exposes it.
+                setIfSupported("ofClearWater", "false");
+                setIfSupported("ofTrees", "1");
+                setIfSupported("ofDroppedItems", "1");
+                setIfSupported("ofRain", "3");
+                setIfSupported("ofSky", "false");
+                setIfSupported("ofStars", "false");
+                setIfSupported("ofSunMoon", "false");
+                setIfSupported("ofAnimatedRain", "false");
+                setIfSupported("ofEntityDistance", "50");
+                setIfSupported("ofDynamicFov", "false");
+                setIfSupported("ofWeather", "false");
             } else if (prefs.getBoolean("max_fps_backup_valid", false)) {
                 for (String key : keys) {
                     String value = prefs.getString("max_fps_backup_" + key, null);
@@ -360,6 +375,10 @@ public abstract class QuickSettingSideDialog extends com.kdt.SideDialogView {
         } catch (Exception e) {
             android.util.Log.w("MikaelLauncher", "Não foi possível aplicar o modo Máximo FPS", e);
         }
+    }
+
+    private static void setIfSupported(String key, String value) {
+        if (MCOptionUtils.get(key) != null) MCOptionUtils.set(key, value);
     }
 
     private boolean isModernMinecraft() {
