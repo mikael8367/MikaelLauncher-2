@@ -411,6 +411,7 @@ public final class MikaelFeatureManager {
             json.put("hours_since_newest_crash", newestCrash == null ? -1 : Math.max(0, (System.currentTimeMillis() - newestCrash.lastModified()) / 3600000));
             json.put("version_manifest_summary", versionManifestSummary(new File(gameDir, "versions")));
             json.put("missing_inherited_versions", missingInheritedVersions(new File(gameDir, "versions")));
+            json.put("compatibility_warnings", compatibilityWarnings(new File(gameDir, "versions"), System.getProperty("java.specification.version", "unknown")));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -805,6 +806,20 @@ public final class MikaelFeatureManager {
             } catch (Exception ignored) { }
         }
         return result;
+    }
+
+    private static org.json.JSONArray compatibilityWarnings(File versions, String javaVersion) {
+        org.json.JSONArray warnings = new org.json.JSONArray();
+        File[] dirs = versions.listFiles(File::isDirectory);
+        if (dirs == null) return warnings;
+        for (File dir : dirs) {
+            String name = dir.getName().toLowerCase(Locale.US);
+            if (name.contains("fabric") && name.contains("1.12") && !javaVersion.startsWith("8")) warnings.put("Fabric 1.12.x normalmente requer Java 8: " + redactDiagnosticText(dir.getName()));
+            if (name.contains("forge") && name.contains("1.7") && !javaVersion.startsWith("8")) warnings.put("Forge antigo detectado com Java diferente de 8: " + redactDiagnosticText(dir.getName()));
+            if (name.contains("forge") && (name.contains("1.18") || name.contains("1.19")) && javaVersion.startsWith("8")) warnings.put("Forge moderno detectado com Java 8: " + redactDiagnosticText(dir.getName()));
+            if (warnings.length() >= 20) break;
+        }
+        return warnings;
     }
 
     private static long directoryLatestModified(File directory) {
