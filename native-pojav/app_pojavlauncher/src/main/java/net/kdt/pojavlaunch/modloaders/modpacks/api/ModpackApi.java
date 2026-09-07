@@ -48,16 +48,28 @@ public interface ModpackApi {
      * @param selectedVersion The selected version
      */
     default void handleInstallation(Context context, ModDetail modDetail, int selectedVersion) {
+        if (modDetail == null || modDetail.versionUrls == null
+                || selectedVersion < 0 || selectedVersion >= modDetail.versionUrls.length) {
+            Tools.showErrorRemote(context, R.string.modpack_install_download_failed,
+                    new IOException("Versão do mod inválida ou incompatível"));
+            return;
+        }
         // Doing this here since when starting installation, the progress does not start immediately
         // which may lead to two concurrent installations (very bad)
         ProgressLayout.setProgress(ProgressLayout.INSTALL_MODPACK, 0, R.string.global_waiting);
         PojavApplication.sExecutorService.execute(() -> {
             try {
                 ModLoader loaderInfo = installMod(modDetail, selectedVersion);
-                if (loaderInfo == null) return;
+                if (loaderInfo == null) {
+                    Tools.showErrorRemote(context, R.string.modpack_install_download_failed,
+                            new IOException("Não foi possível preparar a versão selecionada"));
+                    return;
+                }
                 loaderInfo.getDownloadTask(new NotificationDownloadListener(context, loaderInfo)).run();
-            }catch (IOException e) {
+            }catch (Exception e) {
                 Tools.showErrorRemote(context, R.string.modpack_install_download_failed, e);
+            } finally {
+                ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
             }
         });
     }

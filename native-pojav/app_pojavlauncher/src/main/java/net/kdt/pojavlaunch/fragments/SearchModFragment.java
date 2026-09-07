@@ -29,9 +29,13 @@ import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 
 import android.widget.LinearLayout;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class SearchModFragment extends Fragment implements ModItemAdapter.SearchResultCallback {
 
     public static final String TAG = "SearchModFragment";
+    private static final Pattern MINECRAFT_VERSION = Pattern.compile("(?<![0-9])([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)(?![0-9])");
     private View mOverlay;
     private float mOverlayTopCache; // Padding cache reduce resource lookup
 
@@ -72,7 +76,8 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // You can only access resources after attaching to current context
         if (getArguments() != null) {
-            mSearchFilters.mcVersion = getArguments().getString("curseforge_mc_version", "");
+            mSearchFilters.mcVersion = normalizeMinecraftVersion(
+                    getArguments().getString("curseforge_mc_version", ""));
             String targetDir = getArguments().getString("curseforge_target_game_dir", null);
             if (targetDir != null) {
                 net.kdt.pojavlaunch.prefs.LauncherPreferences.DEFAULT_PREF.edit()
@@ -138,6 +143,13 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         mFilterButton.setOnClickListener(v -> displayFilterDialog());
 
         searchMods(null);
+    }
+
+    /** Converts profile ids such as 1.20.1-fabric-0.15.11 to a Minecraft game version. */
+    private String normalizeMinecraftVersion(String profileVersion) {
+        if (profileVersion == null) return "";
+        Matcher matcher = MINECRAFT_VERSION.matcher(profileVersion.trim());
+        return matcher.find() ? matcher.group(1) : profileVersion.trim();
     }
 
     @Override

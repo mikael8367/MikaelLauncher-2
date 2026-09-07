@@ -21,7 +21,8 @@ public class ModDetail extends ModItem {
 
         // Add the mc version to the version model
         for (int i=0; i<versionNames.length; i++){
-            if (!versionNames[i].contains(mcVersionNames[i]))
+            if (mcVersionNames[i] != null && !mcVersionNames[i].isEmpty()
+                    && !versionNames[i].contains(mcVersionNames[i]))
                 versionNames[i] += " - " + mcVersionNames[i];
         }
     }

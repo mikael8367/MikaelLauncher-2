@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Future;
+import java.util.Locale;
 
 public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements TaskCountListener {
     private static final ModItem[] MOD_ITEMS_EMPTY = new ModItem[0];
@@ -175,10 +176,16 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     mExtendedSpinner = mExtendedLayout.findViewById(R.id.mod_extended_version_spinner);
                     mExtendedErrorTextView = mExtendedLayout.findViewById(R.id.mod_extended_error_textview);
 
-                    mExtendedButton.setOnClickListener(v1 -> mModpackApi.handleInstallation(
-                            mExtendedButton.getContext().getApplicationContext(),
-                            mModDetail,
-                            mExtendedSpinner.getSelectedItemPosition()));
+                    mExtendedButton.setOnClickListener(v1 -> {
+                        if (!mInstallEnabled || mTasksRunning) return;
+                        int selectedVersion = mExtendedSpinner.getSelectedItemPosition();
+                        setInstallEnabled(false);
+                        mExtendedButton.setText("Instalando...");
+                        mModpackApi.handleInstallation(
+                                mExtendedButton.getContext().getApplicationContext(),
+                                mModDetail,
+                                selectedVersion);
+                    });
                     mExtendedSpinner.setAdapter(mLoadingAdapter);
                 } else {
                     if(isExtended()) closeDetailedView();
@@ -273,6 +280,15 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 mExtendedErrorTextView.setVisibility(View.GONE);
                 mVersionAdapter.setObjects(Arrays.asList(detailedItem.versionNames));
                 mExtendedSpinner.setAdapter(mVersionAdapter);
+                int selectedIndex = findBestVersionIndex(detailedItem);
+                if (selectedIndex >= 0) {
+                    mExtendedSpinner.setSelection(selectedIndex);
+                } else {
+                    setInstallEnabled(false);
+                    mExtendedErrorTextView.setText("Nenhuma versão compatível com Minecraft "
+                            + getTargetMinecraftVersion() + " foi encontrada.");
+                    mExtendedErrorTextView.setVisibility(View.VISIBLE);
+                }
             } else {
                 closeDetailedView();
                 setInstallEnabled(false);
@@ -280,6 +296,29 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 mExtendedSpinner.setAdapter(null);
                 mVersionAdapter.setObjects(null);
             }
+        }
+
+        private String getTargetMinecraftVersion() {
+            return mSearchFilters == null || mSearchFilters.mcVersion == null
+                    ? "selecionado" : mSearchFilters.mcVersion;
+        }
+
+        /** Exact match first, then a safe 1.x.y -> 1.x fallback. */
+        private int findBestVersionIndex(ModDetail detail) {
+            String target = getTargetMinecraftVersion();
+            if (target.isEmpty() || detail.mcVersionNames == null) return target.isEmpty() ? 0 : -1;
+            String family = target;
+            int lastDot = family.lastIndexOf('.');
+            if (lastDot > 0) family = family.substring(0, lastDot);
+            int familyIndex = -1;
+            for (int i = 0; i < detail.mcVersionNames.length; i++) {
+                String candidate = detail.mcVersionNames[i];
+                if (candidate == null) continue;
+                candidate = candidate.trim().toLowerCase(Locale.ROOT);
+                if (candidate.equals(target.toLowerCase(Locale.ROOT))) return i;
+                if (familyIndex < 0 && candidate.startsWith(family + ".")) familyIndex = i;
+            }
+            return familyIndex;
         }
 
         private void openDetailedView() {
