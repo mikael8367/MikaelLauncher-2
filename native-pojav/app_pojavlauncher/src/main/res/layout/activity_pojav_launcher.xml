@@ -2,7 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app">
+    android:background="@drawable/mikael_background">
 
     <TextView
         android:id="@+id/mikael_header_title"
@@ -10,8 +10,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="18dp"
         android:layout_marginTop="10dp"
-        android:text="MIKAELLAUNCHER"
-        android:textColor="@color/primary_text"
+        android:text="MIKAEL / NEXUS"
+        android:textColor="@color/mikael_lime"
         android:textSize="18sp"
         android:textStyle="bold"
         android:letterSpacing="0.06"
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="18dp"
         android:layout_marginTop="2dp"
-        android:text="Minecraft Java • do seu jeito"
+        android:text="CONTROL CENTER • JAVA EDITION"
         android:textColor="@color/secondary_text"
         android:textSize="11sp"
         app:layout_constraintStart_toStartOf="parent"

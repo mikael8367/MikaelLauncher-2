@@ -4,7 +4,7 @@
     android:id="@+id/fragment_menu_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app"
+    android:background="@drawable/mikael_background"
     android:paddingStart="18dp"
     android:paddingTop="12dp"
     android:paddingEnd="18dp">
@@ -13,9 +13,9 @@
         android:id="@+id/mikael_brand"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="MIKAELLAUNCHER"
-        android:textColor="@color/primary_text"
-        android:textSize="22sp"
+        android:text="MIKAEL / NEXUS"
+        android:textColor="@color/mikael_lime"
+        android:textSize="23sp"
         android:textStyle="bold"
         android:letterSpacing="0.08"
         app:layout_constraintEnd_toStartOf="@id/mikael_account"
@@ -26,8 +26,8 @@
         android:id="@+id/mikael_account"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="M  Microsoft"
-        android:textColor="@color/mikael_lime"
+        android:text="● ONLINE"
+        android:textColor="@color/mikael_accent"
         android:textSize="13sp"
         app:layout_constraintBottom_toBottomOf="@id/mikael_brand"
         app:layout_constraintEnd_toEndOf="parent"
@@ -38,7 +38,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="BEM-VINDO DE VOLTA\nTudo pronto para sua próxima aventura."
+        android:text="CENTRAL DE CONTROLE\nSeu Minecraft Java, no seu ritmo."
         android:textColor="@color/secondary_text"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -60,7 +60,7 @@
             android:id="@+id/mikael_active_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="INSTALAÇÃO ATIVA"
+            android:text="NÚCLEO ATIVO"
             android:textColor="@color/mikael_accent"
             android:textSize="11sp"
             android:textStyle="bold"
@@ -72,7 +72,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Survival"
+            android:text="SURVIVAL / PRIME"
             android:textColor="@color/primary_text"
             android:textSize="24sp"
             android:textStyle="bold"
@@ -84,7 +84,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:text="Forge   •   Java 8   •   1024 MB"
+            android:text="FORGE   •   JAVA 8   •   TURBO READY"
             android:textColor="@color/secondary_text"
             android:textSize="13sp"
             app:layout_constraintStart_toStartOf="parent"
@@ -119,7 +119,7 @@
         android:layout_height="58dp"
         android:layout_marginTop="14dp"
         android:background="@drawable/mikael_play_button"
-        android:text="JOGAR MINECRAFT"
+        android:text="INICIAR SESSÃO"
         android:textColor="#11120D"
         android:textSize="15sp"
         android:textStyle="bold"
@@ -146,7 +146,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="6dp"
-                android:text="ACESSO RÁPIDO"
+                android:text="MÓDULOS DO NEXUS"
                 android:textColor="@color/secondary_text"
                 android:textSize="11sp"
                 android:textStyle="bold" />
@@ -157,7 +157,7 @@
                 android:layout_width="match_parent"
                 android:background="@drawable/mikael_card"
                 android:drawableStart="@drawable/ic_menu_news"
-                android:text="Versões e notícias"
+                android:text="Catálogo de versões"
                 android:textColor="@color/primary_text" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -166,7 +166,7 @@
                 android:layout_width="match_parent"
                 android:background="@drawable/mikael_card"
                 android:drawableStart="@drawable/ic_discord"
-                android:text="Comunidade Mikael"
+                android:text="Hub da comunidade"
                 android:textColor="@color/primary_text" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -175,7 +175,7 @@
                 android:layout_width="match_parent"
                 android:background="@drawable/mikael_card"
                 android:drawableStart="@drawable/ic_menu_custom_controls"
-                android:text="Controles e gamepad"
+                android:text="Controles / gamepad"
                 android:textColor="@color/primary_text" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -184,7 +184,7 @@
                 android:layout_width="match_parent"
                 android:background="@drawable/mikael_card"
                 android:drawableStart="@drawable/ic_menu_install_jar"
-                android:text="Mods e modpacks"
+                android:text="Mods / modpacks"
                 android:textColor="@color/primary_text" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -193,7 +193,7 @@
                 android:layout_width="match_parent"
                 android:background="@drawable/mikael_card"
                 android:drawableStart="@android:drawable/ic_menu_share"
-                android:text="Logs e diagnósticos"
+                android:text="Telemetria / diagnóstico"
                 android:textColor="@color/primary_text" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -202,7 +202,7 @@
                 android:layout_width="match_parent"
                 android:background="@drawable/mikael_card"
                 android:drawableStart="@drawable/ic_folder"
-                android:text="Arquivos do Minecraft"
+                android:text="Arquivos / mundos"
                 android:textColor="@color/primary_text" />
         </LinearLayout>
     </ScrollView>

@@ -21,6 +21,8 @@ import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class ApiHandler {
+    private static final int CONNECT_TIMEOUT_MS = 15000;
+    private static final int READ_TIMEOUT_MS = 30000;
     public final String baseUrl;
     public final Map<String, String> additionalHeaders;
 
@@ -57,18 +59,20 @@ public class ApiHandler {
     }
 
     public static String getRaw(Map<String, String> headers, String url) {
-        Log.d("ApiHandler", url);
+        HttpURLConnection conn = null;
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
             addHeaders(conn, headers);
             InputStream inputStream = conn.getInputStream();
             String data = Tools.read(inputStream);
-            Log.d(ApiHandler.class.toString(), data);
             inputStream.close();
-            conn.disconnect();
             return data;
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.w("ApiHandler", "GET request failed", e);
+        } finally {
+            if (conn != null) conn.disconnect();
         }
         return null;
     }
@@ -78,8 +82,11 @@ public class ApiHandler {
     }
 
     public static String postRaw(Map<String, String> headers, String url, String body) {
+        HttpURLConnection conn = null;
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json");
@@ -95,10 +102,11 @@ public class ApiHandler {
             String data = Tools.read(inputStream);
             inputStream.close();
 
-            conn.disconnect();
             return data;
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.w("ApiHandler", "POST request failed", e);
+        } finally {
+            if (conn != null) conn.disconnect();
         }
         return null;
     }

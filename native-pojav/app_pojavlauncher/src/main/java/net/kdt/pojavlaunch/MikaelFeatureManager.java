@@ -267,8 +267,8 @@ public final class MikaelFeatureManager {
             json.put("launcher", "MikaelLauncher");
             json.put("version", versionId);
             json.put("timestamp", System.currentTimeMillis());
-            json.put("diagnostic_schema_version", 320);
-            json.put("diagnostic_report_path", report.getAbsolutePath());
+            json.put("diagnostic_schema_version", 500);
+            json.put("diagnostic_report_path", redactDiagnosticText(report.getAbsolutePath()));
             json.put("android", Build.VERSION.RELEASE);
             json.put("api", Build.VERSION.SDK_INT);
             json.put("java_runtime", System.getProperty("java.runtime.version", "unknown"));
@@ -406,7 +406,6 @@ public final class MikaelFeatureManager {
             json.put("startup_failure_signals", startupFailureSignals(new File(gameDir, "logs/latest.log")));
             json.put("failure_classification", classifyFailureSignals(new File(gameDir, "logs/latest.log")));
             json.put("privacy_audit", privacyAudit(new File(gameDir, "logs/latest.log")));
-            json.put("health_summary", healthSummary(json));
             File crashDir = new File(gameDir, "crash-reports");
             File newestCrash = newestFile(crashDir, ".txt");
             json.put("crash_reports_size_mb", directorySizeMb(crashDir));
@@ -573,6 +572,7 @@ public final class MikaelFeatureManager {
             recommendations.put("Use o diagnóstico junto com o FPS/frametime para diferenciar carga do jogo de limite do display.");
             json.put("recommendations", recommendations);
             json.put("compatible_renderers", new org.json.JSONArray(Tools.getCompatibleRenderers(context).rendererIds));
+            json.put("health_summary", healthSummary(json));
             try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) { out.println(json.toString(2)); }
         } catch (Exception e) { Log.w(TAG, "Could not write JSON diagnostic report", e); }
     }
