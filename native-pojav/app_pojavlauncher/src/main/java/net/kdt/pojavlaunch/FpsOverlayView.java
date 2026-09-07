@@ -26,7 +26,7 @@ public final class FpsOverlayView extends TextView {
         public void run() {
             if (!mRunning) return;
             long now = android.os.SystemClock.elapsedRealtime();
-            long[] stats = nativeConsumeFrameStats();
+            long[] stats = consumeStatsSafe();
             if (stats != null && stats.length >= 3) {
                 mFrames += stats[0];
                 mFrameTimeNs += stats[1];
@@ -77,7 +77,7 @@ public final class FpsOverlayView extends TextView {
         mRunning = enabled;
         setVisibility(enabled ? VISIBLE : GONE);
         if (enabled) {
-            nativeConsumeFrameStats();
+            consumeStatsSafe();
             mWindowStartMs = android.os.SystemClock.elapsedRealtime();
             mFrames = 0L;
             mFrameTimeNs = 0L;
@@ -86,7 +86,15 @@ public final class FpsOverlayView extends TextView {
             mHandler.post(mPoller);
         } else {
             mHandler.removeCallbacks(mPoller);
-            nativeConsumeFrameStats();
+            consumeStatsSafe();
+        }
+    }
+
+    private static long[] consumeStatsSafe() {
+        try {
+            return nativeConsumeFrameStats();
+        } catch (UnsatisfiedLinkError ignored) {
+            return new long[]{0L, 0L, 0L};
         }
     }
 
