@@ -381,6 +381,13 @@ public final class MikaelFeatureManager {
             json.put("servers_exists", new File(gameDir, "servers.dat").isFile());
             json.put("empty_mods", isEmptyDirectory(new File(gameDir, "mods")));
             json.put("empty_libraries", isEmptyDirectory(new File(gameDir, "libraries")));
+            json.put("jar_count", countExtension(new File(gameDir, "libraries"), ".jar"));
+            json.put("native_count", countNativeFiles(new File(gameDir, "libraries")));
+            json.put("hidden_files_count", countHiddenFiles(gameDir));
+            json.put("total_installation_size_mb", directorySizeMb(gameDir));
+            json.put("latest_log_modified", fileModified(new File(gameDir, "logs/latest.log")));
+            json.put("options_modified", fileModified(new File(gameDir, "options.txt")));
+            json.put("mods_modified", directoryLatestModified(new File(gameDir, "mods")));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -499,6 +506,29 @@ public final class MikaelFeatureManager {
         File[] children = file.listFiles();
         if (children != null) for (File child : children) total += directorySize(child);
         return total;
+    }
+
+    private static int countExtension(File directory, String extension) {
+        File[] files = directory.listFiles((dir, name) -> name.endsWith(extension));
+        return files == null ? 0 : files.length;
+    }
+
+    private static int countNativeFiles(File directory) {
+        return countExtension(directory, ".so") + countExtension(directory, ".dll") + countExtension(directory, ".dylib");
+    }
+
+    private static int countHiddenFiles(File directory) {
+        File[] files = directory.listFiles((dir, name) -> name.startsWith("."));
+        return files == null ? 0 : files.length;
+    }
+
+    private static long fileModified(File file) { return file.isFile() ? file.lastModified() : 0; }
+
+    private static long directoryLatestModified(File directory) {
+        long latest = directory.isDirectory() ? directory.lastModified() : 0;
+        File[] files = directory.listFiles();
+        if (files != null) for (File file : files) latest = Math.max(latest, file.lastModified());
+        return latest;
     }
 
     private static String findRootCause(String text) {
