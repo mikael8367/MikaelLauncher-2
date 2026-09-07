@@ -403,6 +403,12 @@ public final class MikaelFeatureManager {
             json.put("stack_trace_count", countStackTraces(new File(gameDir, "logs/latest.log")));
             json.put("native_crash_signal_count", countNativeCrashSignals(new File(gameDir, "logs/latest.log")));
             json.put("startup_failure_signals", startupFailureSignals(new File(gameDir, "logs/latest.log")));
+            File crashDir = new File(gameDir, "crash-reports");
+            File newestCrash = newestFile(crashDir, ".txt");
+            json.put("crash_reports_size_mb", directorySizeMb(crashDir));
+            json.put("newest_crash_report", newestCrash == null ? "missing" : redactDiagnosticText(newestCrash.getName()));
+            json.put("newest_crash_modified", newestCrash == null ? 0 : newestCrash.lastModified());
+            json.put("hours_since_newest_crash", newestCrash == null ? -1 : Math.max(0, (System.currentTimeMillis() - newestCrash.lastModified()) / 3600000));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
