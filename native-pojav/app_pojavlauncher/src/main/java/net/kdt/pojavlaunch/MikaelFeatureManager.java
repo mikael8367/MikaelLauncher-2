@@ -316,6 +316,9 @@ public final class MikaelFeatureManager {
                     json.put("thermal_status", power.getCurrentThermalStatus());
                     json.put("power_save", power.isPowerSaveMode());
                     json.put("interactive", power.isInteractive());
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        json.put("thermal_headroom_10s", power.getThermalHeadroom(10));
+                    }
                 }
             }
             json.put("free_storage_mb", getFreeStorageMb(gameDir));
@@ -334,6 +337,13 @@ public final class MikaelFeatureManager {
             json.put("resolution_ratio", LauncherPreferences.DEFAULT_PREF.getInt("resolutionRatio", 100));
             json.put("runtime_count", net.kdt.pojavlaunch.multirt.MultiRTUtils.getRuntimes().size());
             json.put("default_runtime", LauncherPreferences.PREF_DEFAULT_RUNTIME);
+            json.put("cpu0_frequency_khz", readLongFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq"));
+            json.put("cpu0_governor", readTextFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"));
+            json.put("cpu_count_online", countOnlineCpus());
+            json.put("storage_total_mb", gameDir.getTotalSpace() / 1024 / 1024);
+            json.put("storage_usable_mb", gameDir.getUsableSpace() / 1024 / 1024);
+            android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             json.put("compatible_renderers", new org.json.JSONArray(Tools.getCompatibleRenderers(context).rendererIds));
             try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) { out.println(json.toString(2)); }
         } catch (Exception e) { Log.w(TAG, "Could not write JSON diagnostic report", e); }
@@ -363,6 +373,23 @@ public final class MikaelFeatureManager {
             }
         } catch (Exception ignored) { }
         return -1;
+    }
+
+    private static String readTextFile(String path) {
+        try { return Tools.read(path).trim(); } catch (Exception ignored) { return "unavailable"; }
+    }
+
+    private static long readLongFile(String path) {
+        try { return Long.parseLong(readTextFile(path)); } catch (Exception ignored) { return -1; }
+    }
+
+    private static int countOnlineCpus() {
+        int online = 0;
+        for (int i = 0; i < Runtime.getRuntime().availableProcessors(); i++) {
+            String value = readTextFile("/sys/devices/system/cpu/cpu" + i + "/online");
+            if ("1".equals(value) || (i == 0 && "unavailable".equals(value))) online++;
+        }
+        return online;
     }
 
     private static String findRootCause(String text) {
