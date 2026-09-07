@@ -7,6 +7,7 @@
 #include <dlfcn.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <time.h>
 #include <environ/environ.h>
 #include "gl_bridge.h"
 #include "egl_loader.h"
@@ -21,8 +22,22 @@
 static __thread gl_render_window_t* currentBundle;
 static EGLDisplay g_EglDisplay;
 static volatile uint64_t g_mikael_presented_frames;
+static volatile uint64_t g_mikael_frame_time_ns;
+static volatile uint64_t g_mikael_worst_frame_time_ns;
+static uint64_t g_mikael_last_frame_ns;
 
 void mikael_fps_record_frame(void) {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    uint64_t timestamp = (uint64_t) now.tv_sec * 1000000000ULL + (uint64_t) now.tv_nsec;
+    if (g_mikael_last_frame_ns != 0) {
+        uint64_t frameTime = timestamp - g_mikael_last_frame_ns;
+        __sync_fetch_and_add(&g_mikael_frame_time_ns, frameTime);
+        uint64_t worst = g_mikael_worst_frame_time_ns;
+        while (frameTime > worst && !__sync_bool_compare_and_swap(&g_mikael_worst_frame_time_ns, worst, frameTime))
+            worst = g_mikael_worst_frame_time_ns;
+    }
+    g_mikael_last_frame_ns = timestamp;
     __sync_fetch_and_add(&g_mikael_presented_frames, 1);
 }
 
@@ -31,6 +46,18 @@ Java_net_kdt_pojavlaunch_FpsOverlayView_nativeConsumeFrameCount(JNIEnv *env, jcl
     (void) env;
     (void) clazz;
     return (jlong) __sync_lock_test_and_set(&g_mikael_presented_frames, 0);
+}
+
+JNIEXPORT jlongArray JNICALL
+Java_net_kdt_pojavlaunch_FpsOverlayView_nativeConsumeFrameStats(JNIEnv *env, jclass clazz) {
+    (void) clazz;
+    jlong values[3];
+    values[0] = (jlong) __sync_lock_test_and_set(&g_mikael_presented_frames, 0);
+    values[1] = (jlong) __sync_lock_test_and_set(&g_mikael_frame_time_ns, 0);
+    values[2] = (jlong) __sync_lock_test_and_set(&g_mikael_worst_frame_time_ns, 0);
+    jlongArray result = (*env)->NewLongArray(env, 3);
+    if (result != NULL) (*env)->SetLongArrayRegion(env, result, 0, 3, values);
+    return result;
 }
 
 bool gl_init() {

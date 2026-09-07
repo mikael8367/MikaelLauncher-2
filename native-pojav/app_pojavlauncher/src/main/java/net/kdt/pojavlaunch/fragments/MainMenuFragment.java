@@ -19,6 +19,7 @@ import com.kdt.mcgui.mcVersionSpinner;
 
 import net.kdt.pojavlaunch.CustomControlsActivity;
 import net.kdt.pojavlaunch.PojavProfile;
+import net.kdt.pojavlaunch.MikaelFeatureManager;
 import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
@@ -69,6 +70,14 @@ public class MainMenuFragment extends Fragment {
         mPlayButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
 
         mShareLogsButton.setOnClickListener((v) -> shareLog(requireContext()));
+        mShareLogsButton.setOnLongClickListener((v) -> {
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Diagnóstico de logs")
+                    .setMessage(MikaelFeatureManager.analyzeLogs(getCurrentProfileDirectory()))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return true;
+        });
 
         mOpenDirectoryButton.setOnClickListener((v)-> {
             Tools.switchDemo(Tools.isDemoProfile(v.getContext())); // avoid switching accounts being able to access

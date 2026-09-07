@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import java.util.Locale;
 
-/** Displays the number of successful Minecraft buffer swaps measured by the native renderer. */
+/** Displays successful Minecraft buffer swaps and frame pacing from the native renderer. */
 public final class FpsOverlayView extends TextView {
     private static final long SAMPLE_WINDOW_MS = 1000L;
     private static final long POLL_INTERVAL_MS = 100L;
@@ -18,19 +18,30 @@ public final class FpsOverlayView extends TextView {
     private boolean mRunning;
     private long mWindowStartMs;
     private long mFrames;
+    private long mFrameTimeNs;
+    private long mWorstFrameTimeNs;
 
     private final Runnable mPoller = new Runnable() {
         @Override
         public void run() {
             if (!mRunning) return;
             long now = android.os.SystemClock.elapsedRealtime();
-            mFrames += nativeConsumeFrameCount();
+            long[] stats = nativeConsumeFrameStats();
+            if (stats != null && stats.length >= 3) {
+                mFrames += stats[0];
+                mFrameTimeNs += stats[1];
+                mWorstFrameTimeNs = Math.max(mWorstFrameTimeNs, stats[2]);
+            }
             if (mWindowStartMs == 0L) mWindowStartMs = now;
             long elapsed = now - mWindowStartMs;
             if (elapsed >= SAMPLE_WINDOW_MS) {
                 double fps = mFrames * 1000.0 / elapsed;
-                setText(String.format(Locale.US, "FPS: %.1f", fps));
+                double averageMs = mFrames > 1 ? (mFrameTimeNs / 1_000_000.0) / (mFrames - 1) : 0.0;
+                double worstMs = mWorstFrameTimeNs / 1_000_000.0;
+                setText(String.format(Locale.US, "FPS: %.1f\nFrame: %.2f ms | pior: %.1f ms", fps, averageMs, worstMs));
                 mFrames = 0L;
+                mFrameTimeNs = 0L;
+                mWorstFrameTimeNs = 0L;
                 mWindowStartMs = now;
             }
             mHandler.postDelayed(this, POLL_INTERVAL_MS);
@@ -44,7 +55,7 @@ public final class FpsOverlayView extends TextView {
         setGravity(Gravity.CENTER);
         setPadding(12, 6, 12, 6);
         setBackgroundColor(0xB8000000);
-        setText("FPS: --");
+        setText("FPS: --\nFrame: --");
         setVisibility(GONE);
         setElevation(12f);
     }
@@ -66,16 +77,19 @@ public final class FpsOverlayView extends TextView {
         mRunning = enabled;
         setVisibility(enabled ? VISIBLE : GONE);
         if (enabled) {
-            nativeConsumeFrameCount();
+            nativeConsumeFrameStats();
             mWindowStartMs = android.os.SystemClock.elapsedRealtime();
             mFrames = 0L;
-            setText("FPS: --");
+            mFrameTimeNs = 0L;
+            mWorstFrameTimeNs = 0L;
+            setText("FPS: --\nFrame: --");
             mHandler.post(mPoller);
         } else {
             mHandler.removeCallbacks(mPoller);
-            nativeConsumeFrameCount();
+            nativeConsumeFrameStats();
         }
     }
 
     private static native long nativeConsumeFrameCount();
+    private static native long[] nativeConsumeFrameStats();
 }

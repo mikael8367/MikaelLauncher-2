@@ -150,6 +150,40 @@ public final class MikaelFeatureManager {
         }
     }
 
+    public static String analyzeLogs(File gameDir) {
+        File latestLog = new File(gameDir, "logs/latest.log");
+        StringBuilder result = new StringBuilder("Diagnóstico MikaelLauncher\n\n");
+        if (!latestLog.exists()) result.append("latest.log não encontrado.\n");
+        else {
+            try {
+                String log = Tools.read(latestLog);
+                int errors = count(log, "[ERROR]") + count(log, " ERROR ");
+                int warnings = count(log, "[WARN]") + count(log, " WARN ");
+                result.append("latest.log: ").append(errors).append(" erros, ").append(warnings).append(" avisos\n");
+                if (containsAny(log, "OutOfMemoryError", "GC overhead limit exceeded")) result.append("• Memória Java insuficiente ou pressão excessiva do GC.\n");
+                if (containsAny(log, "MixinApplyError", "ModLoadingException", "NoClassDefFoundError")) result.append("• Mod incompatível, dependência ausente ou versão incorreta.\n");
+                if (containsAny(log, "GLFW", "OpenGL", "EGL", "ZINK")) result.append("• Problema potencial no renderizador gráfico.\n");
+                if (containsAny(log, "Connection refused", "SocketTimeoutException", "HTTP 5")) result.append("• Falha de rede ou servidor indisponível durante download.\n");
+                if (errors == 0 && warnings == 0) result.append("• Nenhum erro relevante encontrado no log.\n");
+            } catch (IOException e) {
+                result.append("Falha ao ler latest.log: ").append(e.getMessage()).append('\n');
+            }
+        }
+        result.append('\n').append(analyzeLatestCrash(gameDir));
+        return result.toString();
+    }
+
+    private static int count(String text, String token) {
+        int total = 0, index = 0;
+        while ((index = text.indexOf(token, index)) >= 0) { total++; index += token.length(); }
+        return total;
+    }
+
+    private static boolean containsAny(String text, String... tokens) {
+        for (String token : tokens) if (text.contains(token)) return true;
+        return false;
+    }
+
     public static void writeCompatibilityReport(Context context, File gameDir, String versionId) {
         File report = new File(gameDir, "mikael-compatibility.txt");
         try (PrintWriter out = new PrintWriter(report, StandardCharsets.UTF_8.name())) {
