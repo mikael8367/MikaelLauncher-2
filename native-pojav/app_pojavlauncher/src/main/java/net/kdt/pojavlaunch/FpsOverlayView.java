@@ -98,6 +98,10 @@ public final class FpsOverlayView extends TextView {
         }
     }
 
+    public static long[] consumeNativeFrameStatsForDiagnostics() {
+        return consumeStatsSafe();
+    }
+
     private static native long nativeConsumeFrameCount();
     private static native long[] nativeConsumeFrameStats();
 }

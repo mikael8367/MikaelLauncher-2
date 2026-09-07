@@ -507,6 +507,12 @@ public final class MikaelFeatureManager {
             } catch (Exception ignored) { }
             android.hardware.SensorManager sensors = (android.hardware.SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
             if (sensors != null) json.put("sensor_count", sensors.getSensorList(android.hardware.Sensor.TYPE_ALL).size());
+            long[] frameStats = consumeFrameStatsSafe();
+            json.put("native_frame_count", frameStats[0]);
+            json.put("native_frametime_total_ns", frameStats[1]);
+            json.put("native_worst_frame_ns", frameStats[2]);
+            json.put("native_fps_counter_available", frameStats[3] == 1);
+            json.put("native_frametime_avg_ms", frameStats[0] > 1 ? (frameStats[1] / 1_000_000.0) / (frameStats[0] - 1) : 0.0);
             org.json.JSONArray recommendations = new org.json.JSONArray();
             if (memory.lowMemory) recommendations.put("Reduza a alocação Java ou feche apps em segundo plano.");
             if (getFreeStorageMb(gameDir) >= 0 && getFreeStorageMb(gameDir) < 2048) recommendations.put("Libere pelo menos 2 GB para bibliotecas, cache e mundos.");
@@ -530,6 +536,14 @@ public final class MikaelFeatureManager {
             for (byte value : digest.digest()) hex.append(String.format(Locale.US, "%02x", value));
             return hex.toString();
         } catch (Exception e) { return "unavailable"; }
+    }
+
+    private static long[] consumeFrameStatsSafe() {
+        try {
+            long[] values = FpsOverlayView.consumeNativeFrameStatsForDiagnostics();
+            if (values != null && values.length >= 3) return new long[]{values[0], values[1], values[2], 1};
+        } catch (Throwable ignored) { }
+        return new long[]{0, 0, 0, 0};
     }
 
     private static long readMemInfoMb(String key) {
