@@ -399,6 +399,10 @@ public final class MikaelFeatureManager {
             json.put("versions_without_jar", countVersionsWithoutJar(new File(gameDir, "versions")));
             json.put("libraries_without_files", countMissingLibraryFiles(new File(gameDir, "libraries")));
             json.put("assets_index_count", countExtensionRecursive(new File(gameDir, "assets"), ".json"));
+            json.put("zero_byte_jars", countZeroByteFiles(new File(gameDir, "libraries"), ".jar"));
+            json.put("zero_byte_mods", countZeroByteFiles(new File(gameDir, "mods"), ".jar"));
+            json.put("orphan_versions", countOrphanVersions(new File(gameDir, "versions")));
+            json.put("incomplete_manifests", countIncompleteManifests(new File(gameDir, "versions")));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -594,6 +598,33 @@ public final class MikaelFeatureManager {
             else if (file.getName().endsWith(".lastUpdated")) missing++;
         }
         return missing;
+    }
+
+    private static int countZeroByteFiles(File directory, String extension) {
+        int count = 0; File[] files = directory.listFiles();
+        if (files == null) return 0;
+        for (File file : files) {
+            if (file.isDirectory()) count += countZeroByteFiles(file, extension);
+            else if (file.getName().endsWith(extension) && file.length() == 0) count++;
+        }
+        return count;
+    }
+
+    private static int countOrphanVersions(File versions) {
+        int count = 0; File[] dirs = versions.listFiles(File::isDirectory);
+        if (dirs == null) return 0;
+        for (File dir : dirs) if (!new File(dir, dir.getName() + ".json").isFile()) count++;
+        return count;
+    }
+
+    private static int countIncompleteManifests(File versions) {
+        int count = 0; File[] dirs = versions.listFiles(File::isDirectory);
+        if (dirs == null) return 0;
+        for (File dir : dirs) {
+            File manifest = new File(dir, dir.getName() + ".json");
+            if (manifest.isFile() && !isValidJson(manifest)) count++;
+        }
+        return count;
     }
 
     private static String findRootCause(String text) {
