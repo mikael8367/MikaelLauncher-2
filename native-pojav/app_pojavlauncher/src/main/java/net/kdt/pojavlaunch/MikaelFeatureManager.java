@@ -426,6 +426,11 @@ public final class MikaelFeatureManager {
             json.put("java17_executable_ok", runtimeExecutableOk(runtimeRoot, "17"));
             json.put("java21_executable_ok", runtimeExecutableOk(runtimeRoot, "21"));
             json.put("runtime_release_files", countFilesWithName(runtimeRoot == null ? gameDir : runtimeRoot, "release", ""));
+            json.put("runtime_readable", runtimeRoot != null && runtimeRoot.canRead());
+            json.put("runtime_writable", runtimeRoot != null && runtimeRoot.canWrite());
+            json.put("runtime_architecture", System.getProperty("os.arch", "unknown"));
+            json.put("selected_runtime_exists", runtimeRoot != null && LauncherPreferences.PREF_DEFAULT_RUNTIME != null && new File(LauncherPreferences.PREF_DEFAULT_RUNTIME).isDirectory());
+            json.put("runtime_release_versions", countReleaseFiles(runtimeRoot == null ? gameDir : runtimeRoot));
             android.net.ConnectivityManager connectivity = (android.net.ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             json.put("network_available", connectivity != null && connectivity.getActiveNetwork() != null);
             if (connectivity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -696,6 +701,12 @@ public final class MikaelFeatureManager {
             if (child.isDirectory() && child.getName().contains(token) && java.isFile()) return java.canExecute() || java.length() > 0;
         }
         return false;
+    }
+
+    private static int countReleaseFiles(File root) {
+        if (root == null) return 0;
+        File[] files = root.listFiles((dir, name) -> name.equals("release") || name.startsWith("release-"));
+        return files == null ? 0 : files.length;
     }
 
     private static boolean findMarker(File root, String token) {
