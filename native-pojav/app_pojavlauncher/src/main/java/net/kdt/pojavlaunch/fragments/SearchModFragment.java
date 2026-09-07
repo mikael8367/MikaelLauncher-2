@@ -27,6 +27,8 @@ import net.kdt.pojavlaunch.modloaders.modpacks.models.SearchFilters;
 import net.kdt.pojavlaunch.profiles.VersionSelectorDialog;
 import net.kdt.pojavlaunch.progresskeeper.ProgressKeeper;
 
+import android.widget.LinearLayout;
+
 public class SearchModFragment extends Fragment implements ModItemAdapter.SearchResultCallback {
 
     public static final String TAG = "SearchModFragment";
@@ -47,6 +49,8 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     private ProgressBar mSearchProgressBar;
     private TextView mStatusTextView;
     private ColorStateList mDefaultTextColor;
+    private LinearLayout mContentTabs;
+    private Button[] mContentTabButtons;
 
     private ModpackApi modpackApi;
 
@@ -55,7 +59,7 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
     public SearchModFragment(){
         super(R.layout.fragment_mod_search);
         mSearchFilters = new SearchFilters();
-        mSearchFilters.isModpack = true;
+        mSearchFilters.setContentType(SearchFilters.TYPE_MODPACK);
     }
 
     @Override
@@ -77,6 +81,31 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
         mRecyclerview = view.findViewById(R.id.search_mod_list);
         mStatusTextView = view.findViewById(R.id.search_mod_status_text);
         mFilterButton = view.findViewById(R.id.search_mod_filter);
+        mContentTabs = view.findViewById(R.id.search_content_tabs);
+        int[] tabLabels = {R.string.mikael_content_mods, R.string.mikael_content_textures,
+                R.string.mikael_content_worlds, R.string.mikael_content_modpacks};
+        mContentTabButtons = new Button[tabLabels.length];
+        for (int i = 0; i < tabLabels.length; i++) {
+            final int type = i;
+            Button tab = new Button(requireContext());
+            tab.setText(tabLabels[i]);
+            tab.setAllCaps(false);
+            tab.setMinHeight(0);
+            tab.setMinWidth(0);
+            tab.setPadding(20, 4, 20, 4);
+            tab.setOnClickListener(v -> {
+                mSearchFilters.setContentType(type);
+                for (int j = 0; j < mContentTabButtons.length; j++)
+                    mContentTabButtons[j].setSelected(j == type);
+                mSearchEditText.setHint(type == SearchFilters.TYPE_MOD ?
+                        R.string.mikael_content_search_hint : R.string.hint_search_modpack);
+                searchMods(mSearchEditText.getText().toString());
+            });
+            mContentTabs.addView(tab, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            mContentTabButtons[i] = tab;
+        }
+        mContentTabButtons[SearchFilters.TYPE_MODPACK].performClick();
 
         mDefaultTextColor = mStatusTextView.getTextColors();
 

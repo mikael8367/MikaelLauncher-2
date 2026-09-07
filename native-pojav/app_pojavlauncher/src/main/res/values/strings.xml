@@ -28,6 +28,11 @@
     <string name="login_required_for_download">A conta selecionada não está autenticada. Entre novamente com Microsoft ou Ely.by.</string>
     <string name="mikael_runtime_installing">Preparando Java 8, 17 e 21. Aguarde a instalação terminar.</string>
     <string name="mikael_runtime_install_failed">Não foi possível instalar as runtimes Java. Verifique o armazenamento e tente novamente.</string>
+    <string name="mikael_content_mods">Mods</string>
+    <string name="mikael_content_textures">Texturas</string>
+    <string name="mikael_content_worlds">Mundos</string>
+    <string name="mikael_content_modpacks">Modpacks</string>
+    <string name="mikael_content_search_hint">Pesquisar conteúdo</string>
 
     <!-- Action bar part -->
 
