@@ -393,6 +393,12 @@ public final class MikaelFeatureManager {
             json.put("latest_log_lines", countLines(new File(gameDir, "logs/latest.log")));
             json.put("crash_report_count", countExtensionRecursive(new File(gameDir, "crash-reports"), ".txt"));
             json.put("diagnostic_inputs_available", countDiagnosticInputs(gameDir));
+            int[] logSignals = countLogSignals(new File(gameDir, "logs/latest.log"));
+            json.put("latest_log_error_count", logSignals[0]);
+            json.put("latest_log_exception_count", logSignals[1]);
+            json.put("latest_log_warning_count", logSignals[2]);
+            json.put("latest_log_fatal_count", logSignals[3]);
+            json.put("latest_log_severity", logSignals[3] > 0 ? "critical" : (logSignals[0] > 0 || logSignals[1] > 0 ? "warning" : "normal"));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -660,6 +666,22 @@ public final class MikaelFeatureManager {
         if (new File(root, "libraries").isDirectory()) count++;
         if (new File(root, "options.txt").isFile()) count++;
         return count;
+    }
+
+    private static int[] countLogSignals(File file) {
+        int errors = 0, exceptions = 0, warnings = 0, fatal = 0;
+        if (!file.isFile()) return new int[]{0, 0, 0, 0};
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String lower = line.toLowerCase(Locale.US);
+                if (lower.contains("fatal") || lower.contains("outofmemoryerror")) fatal++;
+                if (lower.contains("error")) errors++;
+                if (lower.contains("exception")) exceptions++;
+                if (lower.contains("warn")) warnings++;
+            }
+        } catch (Exception ignored) { }
+        return new int[]{errors, exceptions, warnings, fatal};
     }
 
     private static long directoryLatestModified(File directory) {
