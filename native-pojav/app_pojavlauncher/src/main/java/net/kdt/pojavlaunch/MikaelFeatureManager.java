@@ -399,6 +399,7 @@ public final class MikaelFeatureManager {
             json.put("latest_log_warning_count", logSignals[2]);
             json.put("latest_log_fatal_count", logSignals[3]);
             json.put("latest_log_severity", logSignals[3] > 0 ? "critical" : (logSignals[0] > 0 || logSignals[1] > 0 ? "warning" : "normal"));
+            json.put("latest_log_error_signatures", logSignatures(new File(gameDir, "logs/latest.log")));
             json.put("forge_detected", containsName(new File(gameDir, "versions"), "forge"));
             json.put("fabric_detected", containsName(new File(gameDir, "versions"), "fabric"));
             json.put("quilt_detected", containsName(new File(gameDir, "versions"), "quilt"));
@@ -682,6 +683,25 @@ public final class MikaelFeatureManager {
             }
         } catch (Exception ignored) { }
         return new int[]{errors, exceptions, warnings, fatal};
+    }
+
+    private static org.json.JSONArray logSignatures(File file) {
+        org.json.JSONArray signatures = new org.json.JSONArray();
+        java.util.LinkedHashSet<String> unique = new java.util.LinkedHashSet<>();
+        if (!file.isFile()) return signatures;
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null && unique.size() < 20) {
+                String lower = line.toLowerCase(Locale.US);
+                if (lower.contains("error") || lower.contains("exception") || lower.contains("fatal")) {
+                    String normalized = line.replaceAll("\\d+", "#").trim();
+                    if (normalized.length() > 160) normalized = normalized.substring(0, 160);
+                    unique.add(normalized);
+                }
+            }
+        } catch (Exception ignored) { }
+        for (String signature : unique) signatures.put(signature);
+        return signatures;
     }
 
     private static long directoryLatestModified(File directory) {
