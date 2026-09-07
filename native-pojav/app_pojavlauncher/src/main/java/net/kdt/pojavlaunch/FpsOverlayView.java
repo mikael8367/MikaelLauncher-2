@@ -5,8 +5,11 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
+import net.kdt.pojavlaunch.prefs.LauncherPreferences;
 
 import java.util.Locale;
 
@@ -20,6 +23,9 @@ public final class FpsOverlayView extends TextView {
     private long mFrames;
     private long mFrameTimeNs;
     private long mWorstFrameTimeNs;
+    private float mDragOffsetX;
+    private float mDragOffsetY;
+    private FrameLayout mParent;
 
     private final Runnable mPoller = new Runnable() {
         @Override
@@ -61,6 +67,7 @@ public final class FpsOverlayView extends TextView {
     }
 
     public void attachTo(FrameLayout parent) {
+        mParent = parent;
         if (getParent() == null) {
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -69,6 +76,36 @@ public final class FpsOverlayView extends TextView {
             params.leftMargin = 16;
             params.topMargin = 16;
             parent.addView(this, params);
+            post(() -> {
+                setX(LauncherPreferences.DEFAULT_PREF.getFloat("fps_overlay_x", 16f));
+                setY(LauncherPreferences.DEFAULT_PREF.getFloat("fps_overlay_y", 16f));
+            });
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (mParent == null) return super.onTouchEvent(event);
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                mDragOffsetX = event.getRawX() - getX();
+                mDragOffsetY = event.getRawY() - getY();
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                float maxX = Math.max(0f, mParent.getWidth() - getWidth());
+                float maxY = Math.max(0f, mParent.getHeight() - getHeight());
+                setX(Math.max(0f, Math.min(maxX, event.getRawX() - mDragOffsetX)));
+                setY(Math.max(0f, Math.min(maxY, event.getRawY() - mDragOffsetY)));
+                return true;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                LauncherPreferences.DEFAULT_PREF.edit()
+                        .putFloat("fps_overlay_x", getX())
+                        .putFloat("fps_overlay_y", getY())
+                        .apply();
+                return true;
+            default:
+                return true;
         }
     }
 

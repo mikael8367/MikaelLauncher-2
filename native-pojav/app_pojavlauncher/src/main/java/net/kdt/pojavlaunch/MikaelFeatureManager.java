@@ -490,6 +490,7 @@ public final class MikaelFeatureManager {
             json.put("storage_state", android.os.Environment.getExternalStorageState());
             json.put("storage_manager_available", context.getSystemService(Context.STORAGE_SERVICE) != null);
             json.put("launch_readiness", launchReadiness(context, gameDir));
+            json.put("heavy_modpack_readiness", heavyModpackReadiness(context, gameDir));
             json.put("data_dir_size_mb", directorySizeMb(context.getFilesDir()));
             android.content.pm.ApplicationInfo appInfo = context.getApplicationInfo();
             json.put("target_sdk", appInfo.targetSdkVersion);
@@ -987,6 +988,40 @@ public final class MikaelFeatureManager {
             result.put("newest_crash_age_ms", crashAge);
             result.put("crash_after_log", crash != null && log.isFile() && crash.lastModified() > log.lastModified());
             result.put("report_stale", !log.isFile() || logAge > 604800000L);
+        } catch (Exception ignored) { }
+        return result;
+    }
+
+    private static org.json.JSONObject heavyModpackReadiness(Context context, File gameDir) {
+        org.json.JSONObject result = new org.json.JSONObject();
+        File mods = new File(gameDir, "mods");
+        File config = new File(gameDir, "config");
+        long modsSize = directorySizeMb(mods);
+        long configSize = directorySizeMb(config);
+        int modCount = countFiles(mods);
+        boolean heavy = modCount >= 120 || modsSize >= 1024 || configSize >= 256;
+        long freeMb = getFreeStorageMb(gameDir);
+        long availableMb = -1L;
+        try {
+            ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
+            ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            if (manager != null) {
+                manager.getMemoryInfo(info);
+                availableMb = info.availMem / 1024 / 1024;
+            }
+            long requiredStorage = heavy ? Math.max(4096L, modsSize * 2L + 2048L) : 2048L;
+            result.put("heavy_detected", heavy);
+            result.put("mod_count", modCount);
+            result.put("mods_size_mb", modsSize);
+            result.put("config_size_mb", configSize);
+            result.put("free_storage_mb", freeMb);
+            result.put("available_memory_mb", availableMb);
+            result.put("required_free_storage_mb", requiredStorage);
+            result.put("recommended_ram_mb", heavy ? 4096L : 2048L);
+            result.put("storage_ready", freeMb < 0 || freeMb >= requiredStorage);
+            result.put("memory_ready", availableMb < 0 || availableMb >= (heavy ? 1536L : 768L));
+            result.put("ready", !heavy || ((freeMb < 0 || freeMb >= requiredStorage)
+                    && (availableMb < 0 || availableMb >= 1536L)));
         } catch (Exception ignored) { }
         return result;
     }

@@ -341,6 +341,8 @@ public class JREUtils {
             userArgs.add("-XX:+ParallelRefProcEnabled");
             userArgs.add("-XX:+DisableExplicitGC");
             userArgs.add("-XX:+UseStringDeduplication");
+            userArgs.add("-XX:InitiatingHeapOccupancyPercent=20");
+            userArgs.add("-XX:G1ReservePercent=20");
         }
         if(LOCAL_RENDERER != null) userArgs.add("-Dorg.lwjgl.opengl.libname=" + graphicsLib);
 
