@@ -44,12 +44,27 @@ public class ForgeOptiFineDownloadTask implements Runnable, Tools.DownloaderFeed
 
     private OptiFineUtils.OptiFineVersion findCompatible(OptiFineUtils.OptiFineVersions all, String gameVersion) {
         if (all == null || all.minecraftVersions == null || all.optifineVersions == null) return null;
+        String wanted = normalizeVersion(gameVersion);
+        OptiFineUtils.OptiFineVersion familyFallback = null;
         for (int i = 0; i < all.minecraftVersions.size(); i++) {
-            if (!gameVersion.equals(all.minecraftVersions.get(i))) continue;
+            String listed = normalizeVersion(all.minecraftVersions.get(i));
             List<OptiFineUtils.OptiFineVersion> choices = all.optifineVersions.get(i);
-            if (choices != null && !choices.isEmpty()) return choices.get(0);
+            if (choices == null || choices.isEmpty()) continue;
+            if (wanted.equals(listed)) return choices.get(0);
+            if (familyFallback == null && listed.startsWith(wanted + ".")) familyFallback = choices.get(0);
         }
-        return null;
+        return familyFallback;
+    }
+
+    private String normalizeVersion(String value) {
+        if (value == null) return "";
+        String normalized = value.trim();
+        if (normalized.regionMatches(true, 0, "Minecraft ", 0, 10)) {
+            normalized = normalized.substring(10).trim();
+        }
+        int separator = normalized.indexOf(' ');
+        if (separator > 0) normalized = normalized.substring(0, separator);
+        return normalized;
     }
 
     @Override public void updateProgress(int current, int max) {
