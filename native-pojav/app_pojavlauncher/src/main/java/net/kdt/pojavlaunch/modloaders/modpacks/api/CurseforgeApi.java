@@ -145,7 +145,51 @@ public class CurseforgeApi implements ModpackApi{
 
             hashes[i] = getSha1FromModData(modDetail);
         }
-        return new ModDetail(item, versionNames, mcVersionNames, versionUrls, hashes);
+        ModDetail result = new ModDetail(item, versionNames, mcVersionNames, versionUrls, hashes);
+        for (int i = 0; i < allModDetails.size(); i++) {
+            DependencyBundle dependencies = getRequiredDependencies(allModDetails.get(i), mcVersionNames[i]);
+            if (dependencies != null) {
+                result.setRequiredDependencies(i, dependencies.urls, dependencies.hashes, dependencies.names);
+            }
+        }
+        return result;
+    }
+
+    private DependencyBundle getRequiredDependencies(JsonObject fileInfo, String gameVersion) {
+        JsonArray relations = GsonJsonUtils.getJsonArraySafe(fileInfo, "dependencies");
+        if (relations == null || relations.size() == 0) return null;
+        ArrayList<String> urls = new ArrayList<>();
+        ArrayList<String> hashes = new ArrayList<>();
+        ArrayList<String> names = new ArrayList<>();
+        for (JsonElement relationElement : relations) {
+            JsonObject relation = relationElement.getAsJsonObject();
+            // CurseForge relationType 4 is required; optional (3) is skipped.
+            if (!relation.has("relationType") || relation.get("relationType").getAsInt() != 4) continue;
+            long projectId = relation.get("modId").getAsLong();
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("pageSize", 1);
+            if (gameVersion != null && !gameVersion.isEmpty()) params.put("gameVersion", gameVersion);
+            JsonObject response = mApiHandler.get("mods/" + projectId + "/files", params, JsonObject.class);
+            JsonArray files = GsonJsonUtils.getJsonArraySafe(response, "data");
+            if (files == null || files.size() == 0) continue;
+            JsonObject dependencyFile = files.get(0).getAsJsonObject();
+            JsonElement urlElement = dependencyFile.get("downloadUrl");
+            if (urlElement == null || urlElement.isJsonNull()) continue;
+            urls.add(urlElement.getAsString());
+            hashes.add(getSha1FromModData(dependencyFile));
+            names.add(dependencyFile.has("fileName") ? dependencyFile.get("fileName").getAsString()
+                    : "dependency-" + projectId + ".jar");
+        }
+        return urls.isEmpty() ? null : new DependencyBundle(urls, hashes, names);
+    }
+
+    private static class DependencyBundle {
+        final String[] urls, hashes, names;
+        DependencyBundle(ArrayList<String> urls, ArrayList<String> hashes, ArrayList<String> names) {
+            this.urls = urls.toArray(new String[0]);
+            this.hashes = hashes.toArray(new String[0]);
+            this.names = names.toArray(new String[0]);
+        }
     }
 
     @Override

@@ -146,6 +146,29 @@ public class CommonApi implements ModpackApi {
             DownloadUtils.downloadFileMonitored(url, destination, buffer, (current, total) -> { });
             return null;
         });
+        installRequiredDependencies(detail, selectedVersion, base);
+    }
+
+    private void installRequiredDependencies(ModDetail detail, int selectedVersion, File base) throws IOException {
+        if (detail.dependencyUrls == null || selectedVersion >= detail.dependencyUrls.length
+                || detail.dependencyUrls[selectedVersion] == null) return;
+        File modsDir = new File(base, "mods");
+        if (!modsDir.exists() && !modsDir.mkdirs()) throw new IOException("Não foi possível criar a pasta de mods");
+        String[] urls = detail.dependencyUrls[selectedVersion];
+        String[] hashes = detail.dependencyHashes[selectedVersion];
+        String[] names = detail.dependencyNames[selectedVersion];
+        for (int i = 0; i < urls.length; i++) {
+            String name = names != null && i < names.length ? names[i] : "dependency-" + i + ".jar";
+            name = name.replaceAll("[^A-Za-z0-9._-]", "_");
+            File destination = new File(modsDir, name);
+            String hash = hashes != null && i < hashes.length ? hashes[i] : null;
+            byte[] buffer = new byte[8192];
+            final String dependencyUrl = urls[i];
+            DownloadUtils.ensureSha1(destination, hash, () -> {
+                DownloadUtils.downloadFileMonitored(dependencyUrl, destination, buffer, (current, total) -> { });
+                return null;
+            });
+        }
     }
 
     private @NonNull ModpackApi getModpackApi(int apiSource) {

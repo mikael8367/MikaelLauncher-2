@@ -12,12 +12,19 @@ public class ModDetail extends ModItem {
     public String[] versionUrls;
     /* SHA 1 hashes, null if a hash is unavailable */
     public String[] versionHashes;
+    /** Required dependency files per selected version; optional dependencies are excluded. */
+    public String[][] dependencyUrls;
+    public String[][] dependencyHashes;
+    public String[][] dependencyNames;
     public ModDetail(ModItem item, String[] versionNames, String[] mcVersionNames, String[] versionUrls, String[] hashes) {
         super(item.apiSource, item.contentType, item.id, item.title, item.description, item.imageUrl);
         this.versionNames = versionNames;
         this.mcVersionNames = mcVersionNames;
         this.versionUrls = versionUrls;
         this.versionHashes = hashes;
+        this.dependencyUrls = new String[versionUrls.length][];
+        this.dependencyHashes = new String[versionUrls.length][];
+        this.dependencyNames = new String[versionUrls.length][];
 
         // Add the mc version to the version model
         for (int i=0; i<versionNames.length; i++){
@@ -25,6 +32,13 @@ public class ModDetail extends ModItem {
                     && !versionNames[i].contains(mcVersionNames[i]))
                 versionNames[i] += " - " + mcVersionNames[i];
         }
+    }
+
+    public void setRequiredDependencies(int version, String[] urls, String[] hashes, String[] names) {
+        if (version < 0 || version >= versionUrls.length) return;
+        dependencyUrls[version] = urls;
+        dependencyHashes[version] = hashes;
+        dependencyNames[version] = names;
     }
 
     @NonNull

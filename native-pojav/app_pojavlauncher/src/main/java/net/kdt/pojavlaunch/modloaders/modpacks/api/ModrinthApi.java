@@ -18,6 +18,7 @@ import net.kdt.pojavlaunch.utils.ZipUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.zip.ZipFile;
 
@@ -122,7 +123,43 @@ public class ModrinthApi implements ModpackApi{
             hashes[i] = hashesMap.get("sha1").getAsString();
         }
 
-        return new ModDetail(item, names, mcNames, urls, hashes);
+        ModDetail result = new ModDetail(item, names, mcNames, urls, hashes);
+        for (int i = 0; i < response.size(); i++) {
+            DependencyBundle dependencies = getRequiredDependencies(response.get(i).getAsJsonObject());
+            if (dependencies != null) result.setRequiredDependencies(i, dependencies.urls, dependencies.hashes, dependencies.names);
+        }
+        return result;
+    }
+
+    private DependencyBundle getRequiredDependencies(JsonObject version) {
+        JsonArray dependencies = version.getAsJsonArray("dependencies");
+        if (dependencies == null) return null;
+        ArrayList<String> urls = new ArrayList<>(), hashes = new ArrayList<>(), names = new ArrayList<>();
+        for (int i = 0; i < dependencies.size(); i++) {
+            JsonObject dependency = dependencies.get(i).getAsJsonObject();
+            if (!"required".equals(dependency.has("dependency_type")
+                    ? dependency.get("dependency_type").getAsString() : "required")) continue;
+            if (!dependency.has("version_id") || dependency.get("version_id").isJsonNull()) continue;
+            JsonObject dependencyVersion = mApiHandler.get("version/" + dependency.get("version_id").getAsString(), JsonObject.class);
+            if (dependencyVersion == null || !dependencyVersion.has("files")) continue;
+            JsonArray files = dependencyVersion.getAsJsonArray("files");
+            if (files.size() == 0) continue;
+            JsonObject file = files.get(0).getAsJsonObject();
+            if (!file.has("url")) continue;
+            urls.add(file.get("url").getAsString());
+            JsonObject fileHashes = file.has("hashes") ? file.getAsJsonObject("hashes") : null;
+            hashes.add(fileHashes != null && fileHashes.has("sha1") ? fileHashes.get("sha1").getAsString() : null);
+            names.add(file.has("filename") ? file.get("filename").getAsString() : "dependency-" + i + ".jar");
+        }
+        return urls.isEmpty() ? null : new DependencyBundle(urls, hashes, names);
+    }
+
+    private static class DependencyBundle {
+        final String[] urls, hashes, names;
+        DependencyBundle(ArrayList<String> urls, ArrayList<String> hashes, ArrayList<String> names) {
+            this.urls = urls.toArray(new String[0]); this.hashes = hashes.toArray(new String[0]);
+            this.names = names.toArray(new String[0]);
+        }
     }
 
     @Override
