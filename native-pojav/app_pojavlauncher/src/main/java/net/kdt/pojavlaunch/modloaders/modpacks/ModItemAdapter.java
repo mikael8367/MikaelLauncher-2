@@ -157,6 +157,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         private Spinner mExtendedSpinner;
         private Button mExtendedButton;
         private TextView mExtendedErrorTextView;
+        private CharSequence mInstallButtonText;
         private Future<?> mExtensionFuture;
         private Bitmap mThumbnailBitmap;
         private ImageReceiver mImageReceiver;
@@ -175,6 +176,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     mExtendedButton = mExtendedLayout.findViewById(R.id.mod_extended_select_version_button);
                     mExtendedSpinner = mExtendedLayout.findViewById(R.id.mod_extended_version_spinner);
                     mExtendedErrorTextView = mExtendedLayout.findViewById(R.id.mod_extended_error_textview);
+                    mInstallButtonText = mExtendedButton.getText();
 
                     mExtendedButton.setOnClickListener(v1 -> {
                         if (!mInstallEnabled || mTasksRunning) return;
@@ -184,7 +186,8 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         mModpackApi.handleInstallation(
                                 mExtendedButton.getContext().getApplicationContext(),
                                 mModDetail,
-                                selectedVersion);
+                                selectedVersion,
+                                this::onInstallationFinished);
                     });
                     mExtendedSpinner.setAdapter(mLoadingAdapter);
                 } else {
@@ -371,6 +374,12 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         private void updateInstallButtonState() {
             if(mExtendedButton != null)
                 mExtendedButton.setEnabled(mInstallEnabled && !mTasksRunning);
+        }
+
+        private void onInstallationFinished() {
+            if (mExtendedButton == null) return;
+            mExtendedButton.setText(mInstallButtonText == null ? "Instalar" : mInstallButtonText);
+            setInstallEnabled(mModDetail != null);
         }
     }
 

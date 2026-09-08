@@ -48,6 +48,10 @@ public interface ModpackApi {
      * @param selectedVersion The selected version
      */
     default void handleInstallation(Context context, ModDetail modDetail, int selectedVersion) {
+        handleInstallation(context, modDetail, selectedVersion, null);
+    }
+
+    default void handleInstallation(Context context, ModDetail modDetail, int selectedVersion, Runnable onFinished) {
         if (modDetail == null || modDetail.versionUrls == null
                 || selectedVersion < 0 || selectedVersion >= modDetail.versionUrls.length) {
             Tools.showErrorRemote(context, R.string.modpack_install_download_failed,
@@ -78,6 +82,7 @@ public interface ModpackApi {
                 Tools.showErrorRemote(context, R.string.modpack_install_download_failed, e);
             } finally {
                 ProgressLayout.clearProgress(ProgressLayout.INSTALL_MODPACK);
+                if (onFinished != null) Tools.runOnUiThread(onFinished);
             }
         });
     }
