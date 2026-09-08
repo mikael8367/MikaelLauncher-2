@@ -33,6 +33,14 @@ public class CommonApi implements ModpackApi {
     private final ModpackApi mModrinthApi;
     private final ModpackApi[] mModpackApis;
     private final ConcurrentHashMap<String, ModDetail> mDetailCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, DependencyBundle> mDependencyCache = new ConcurrentHashMap<>();
+
+    private static class DependencyBundle {
+        final String[] urls, hashes, names;
+        DependencyBundle(String[] urls, String[] hashes, String[] names) {
+            this.urls = urls; this.hashes = hashes; this.names = names;
+        }
+    }
 
     public CommonApi(String curseforgeApiKey) {
         mCurseforgeApi = new CurseforgeApi(curseforgeApiKey);
@@ -129,8 +137,27 @@ public class CommonApi implements ModpackApi {
         return getModpackApi(modDetail.apiSource).installMod(modDetail, selectedVersion);
     }
 
-    private void installIndividualContent(ModDetail detail, int selectedVersion) throws IOException {
+    @Override
+    public void resolveRequiredDependencies(ModDetail detail, int selectedVersion) throws IOException {
+        if (detail.versionIds == null || selectedVersion < 0 || selectedVersion >= detail.versionIds.length) return;
+        if (detail.dependencyUrls[selectedVersion] != null) return;
+        String cacheKey = detail.apiSource + ":" + detail.versionIds[selectedVersion];
+        DependencyBundle cached = mDependencyCache.get(cacheKey);
+        if (cached != null) {
+            detail.setRequiredDependencies(selectedVersion, cached.urls, cached.hashes, cached.names);
+            return;
+        }
         getModpackApi(detail.apiSource).resolveRequiredDependencies(detail, selectedVersion);
+        String[] urls = detail.dependencyUrls[selectedVersion];
+        if (urls != null) {
+            DependencyBundle resolved = new DependencyBundle(urls,
+                    detail.dependencyHashes[selectedVersion], detail.dependencyNames[selectedVersion]);
+            mDependencyCache.putIfAbsent(cacheKey, resolved);
+        }
+    }
+
+    private void installIndividualContent(ModDetail detail, int selectedVersion) throws IOException {
+        resolveRequiredDependencies(detail, selectedVersion);
         LauncherProfiles.load();
             String targetDir = LauncherPreferences.DEFAULT_PREF.getString("curseforge_target_game_dir", null);
             File base = targetDir == null || targetDir.isEmpty()
