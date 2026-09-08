@@ -180,8 +180,16 @@ public class MinecraftGLSurface extends View implements GrabListener, DirectGame
     }
 
     private void installFpsOverlay() {
-        if (!(getParent() instanceof android.widget.FrameLayout)) return;
-        android.widget.FrameLayout parent = (android.widget.FrameLayout) getParent();
+        android.view.ViewParent current = getParent();
+        android.widget.FrameLayout parent = null;
+        while (current instanceof android.view.View) {
+            if (current instanceof android.widget.FrameLayout) {
+                parent = (android.widget.FrameLayout) current;
+                break;
+            }
+            current = current.getParent();
+        }
+        if (parent == null) return;
         sFpsOverlay = new FpsOverlayView(getContext());
         sFpsOverlay.attachTo(parent);
         sFpsOverlay.setEnabled(LauncherPreferences.DEFAULT_PREF.getBoolean("show_fps_overlay", false));

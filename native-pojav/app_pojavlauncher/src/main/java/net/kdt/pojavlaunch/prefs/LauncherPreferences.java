@@ -119,15 +119,15 @@ public class LauncherPreferences {
         String performanceProfile = DEFAULT_PREF.getString("performance_profile", "balanced");
         if ("turbo".equals(performanceProfile) || "ultra".equals(performanceProfile)) {
             boolean ultra = "ultra".equals(performanceProfile);
-            PREF_SUSTAINED_PERFORMANCE = ultra;
+            // Sustained mode can thermally throttle weaker phones; keep it opt-in.
+            PREF_SUSTAINED_PERFORMANCE = false;
             PREF_FORCE_VSYNC = false;
             PREF_BIG_CORE_AFFINITY = true;
             DEFAULT_PREF.edit()
-                    .putBoolean("sustainedPerformance", ultra)
+                    .putBoolean("sustainedPerformance", false)
                     .putBoolean("force_vsync", false)
                     .putBoolean("bigCoreAffinity", true)
                     .putBoolean("uncapped_fps", true)
-                    .putBoolean("max_fps_mode", ultra)
                     .apply();
         }
 

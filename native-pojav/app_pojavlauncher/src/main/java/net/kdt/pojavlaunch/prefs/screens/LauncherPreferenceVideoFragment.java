@@ -114,13 +114,14 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         boolean ultra = "ultra".equals(profile);
         boolean turbo = "turbo".equals(profile) || ultra;
         boolean eco = "eco".equals(profile);
-        int targetResolution = ultra ? 85 : 100;
+        // Keep the user's resolution. Automatic 85% scaling made text blurry and can hurt
+        // some tile-based mobile GPUs; users can still tune it manually below.
+        int targetResolution = (int) (LauncherPreferences.PREF_SCALE_FACTOR * 100);
         LauncherPreferences.DEFAULT_PREF.edit()
                 .putBoolean("uncapped_fps", turbo)
                 .putBoolean("force_vsync", eco)
-                .putBoolean("sustainedPerformance", ultra)
+                .putBoolean("sustainedPerformance", false)
                 .putBoolean("bigCoreAffinity", turbo)
-                .putBoolean("max_fps_mode", ultra)
                 .putBoolean("alternate_surface", !eco)
                 .putInt("resolutionRatio", targetResolution)
                 .apply();

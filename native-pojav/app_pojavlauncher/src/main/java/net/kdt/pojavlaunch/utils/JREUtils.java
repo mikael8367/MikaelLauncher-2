@@ -345,15 +345,6 @@ public class JREUtils {
             userArgs.add("-XX:+UseStringDeduplication");
             userArgs.add("-XX:InitiatingHeapOccupancyPercent=20");
             userArgs.add("-XX:G1ReservePercent=20");
-            if ("ultra".equals(performanceProfile)) {
-                // Aggressive but supported G1 tuning for Java 8/17/21. Avoid experimental
-                // flags that can abort startup on vendor-specific Android runtimes.
-                userArgs.add("-XX:MaxGCPauseMillis=35");
-                userArgs.add("-XX:G1RSetUpdatingPauseTimePercent=5");
-                userArgs.add("-XX:ConcGCThreads=2");
-                userArgs.add("-XX:ParallelGCThreads=" + Math.max(2, Math.min(6,
-                        java.lang.Runtime.getRuntime().availableProcessors())));
-            }
         }
         if(LOCAL_RENDERER != null) userArgs.add("-Dorg.lwjgl.opengl.libname=" + graphicsLib);
 
