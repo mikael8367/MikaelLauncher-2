@@ -118,6 +118,13 @@ public class SearchModFragment extends Fragment implements ModItemAdapter.Search
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             mContentTabButtons[i] = tab;
         }
+        Button batchInstall = new Button(requireContext());
+        batchInstall.setText("Instalar selecionados");
+        batchInstall.setAllCaps(false);
+        batchInstall.setMinHeight(0);
+        batchInstall.setOnClickListener(v -> mModItemAdapter.installSelected(requireContext()));
+        mContentTabs.addView(batchInstall, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         mContentTabButtons[SearchFilters.TYPE_MODPACK].performClick();
 
         mDefaultTextColor = mStatusTextView.getTextColors();

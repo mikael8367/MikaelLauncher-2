@@ -1,6 +1,7 @@
 package net.kdt.pojavlaunch.modloaders.modpacks;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
@@ -35,6 +36,7 @@ import net.kdt.pojavlaunch.progresskeeper.TaskCountListener;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.Future;
@@ -62,6 +64,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private SearchResult mCurrentResult;
     private boolean mLastPage;
     private boolean mTasksRunning;
+    private final Set<String> mSelectedIds = new HashSet<>();
 
 
     public ModItemAdapter(Resources resources, ModpackApi api, SearchResultCallback callback) {
@@ -72,6 +75,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public void performSearchQuery(SearchFilters searchFilters) {
+        mSelectedIds.clear();
         if(mTaskInProgress != null) {
             mTaskInProgress.cancel(true);
             mTaskInProgress = null;
@@ -80,6 +84,54 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         this.mLastPage = false;
         mTaskInProgress = new SelfReferencingFuture(new SearchApiTask(mSearchFilters, null))
                 .startOnExecutor(PojavApplication.sExecutorService);
+    }
+
+    public int getSelectedCount() { return mSelectedIds.size(); }
+
+    public void toggleSelected(ModItem item, Context context) {
+        if (item == null) return;
+        if (!mSelectedIds.add(item.id)) mSelectedIds.remove(item.id);
+        android.widget.Toast.makeText(context, mSelectedIds.size() + " selecionado(s)", android.widget.Toast.LENGTH_SHORT).show();
+    }
+
+    public void installSelected(Context context) {
+        ModItem[] selected = Arrays.stream(mModItems)
+                .filter(item -> mSelectedIds.contains(item.id)).toArray(ModItem[]::new);
+        if (selected.length == 0) {
+            android.widget.Toast.makeText(context, "Faça toque longo nos mods desejados", android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mSelectedIds.clear();
+        PojavApplication.sExecutorService.execute(() -> {
+            int installed = 0;
+            for (ModItem item : selected) {
+                try {
+                    ModDetail detail = mModpackApi.getModDetails(item);
+                    if (detail == null || detail.isModpack) continue;
+                    int index = bestVersionIndex(detail);
+                    if (index >= 0) { mModpackApi.installMod(detail, index); installed++; }
+                } catch (Exception ignored) { }
+            }
+            int result = installed;
+            Tools.runOnUiThread(() -> android.widget.Toast.makeText(context,
+                    result + " mod(s) instalado(s)", android.widget.Toast.LENGTH_SHORT).show());
+        });
+    }
+
+    private int bestVersionIndex(ModDetail detail) {
+        String target = mSearchFilters == null ? "" : mSearchFilters.mcVersion;
+        if (target == null || target.isEmpty()) return detail.versionUrls.length == 0 ? -1 : 0;
+        String family = target;
+        int dot = family.lastIndexOf('.');
+        if (dot > 0) family = family.substring(0, dot);
+        int fallback = -1;
+        for (int i = 0; i < detail.mcVersionNames.length; i++) {
+            String candidate = detail.mcVersionNames[i];
+            if (candidate == null) continue;
+            if (candidate.equalsIgnoreCase(target)) return i;
+            if (fallback < 0 && candidate.startsWith(family + ".")) fallback = i;
+        }
+        return fallback;
     }
 
     @NonNull
@@ -229,6 +281,10 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         });
                     }).startOnExecutor(PojavApplication.sExecutorService);
                 }
+            });
+            view.setOnLongClickListener(v -> {
+                toggleSelected(mModItem, v.getContext());
+                return true;
             });
 
             // Define click listener for the ViewHolder's View
