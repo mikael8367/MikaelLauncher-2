@@ -65,6 +65,11 @@
     <string name="mikael_zink_threaded_summary">Ativa mesa_glthread quando disponível; pode melhorar FPS ou expor bugs de driver.</string>
     <string name="mikael_renderer_catalog_title">Catálogo de renderizadores</string>
     <string name="mikael_renderer_catalog_summary">Lista OpenGL, Vulkan, tradução e software; somente bibliotecas reais podem ser ativadas.</string>
+    <string name="mikael_forge_optifine_profile">Forge + OptiFine</string>
+    <string name="mikael_forge_optifine_title">Instalar Forge + OptiFine</string>
+    <string name="mikael_forge_optifine_message">Instale o Forge primeiro e depois o OptiFine para a mesma versão do Minecraft. Isso evita incompatibilidade entre instaladores.</string>
+    <string name="mikael_forge_optifine_forge">1. Escolher e instalar Forge</string>
+    <string name="mikael_forge_optifine_optifine">2. Escolher e instalar OptiFine</string>
 
     <!-- Action bar part -->
 
