@@ -126,8 +126,10 @@ public class CurseforgeApi implements ModpackApi{
         String[] mcVersionNames = new String[length];
         String[] versionUrls = new String[length];
         String[] hashes = new String[length];
+        String[] versionIds = new String[length];
         for(int i = 0; i < allModDetails.size(); i++) {
             JsonObject modDetail = allModDetails.get(i);
+            versionIds[i] = modDetail.get("id").getAsString();
             versionNames[i] = modDetail.get("displayName").getAsString();
 
             JsonElement downloadUrl = modDetail.get("downloadUrl");
@@ -145,14 +147,7 @@ public class CurseforgeApi implements ModpackApi{
 
             hashes[i] = getSha1FromModData(modDetail);
         }
-        ModDetail result = new ModDetail(item, versionNames, mcVersionNames, versionUrls, hashes);
-        for (int i = 0; i < allModDetails.size(); i++) {
-            DependencyBundle dependencies = getRequiredDependencies(allModDetails.get(i), mcVersionNames[i]);
-            if (dependencies != null) {
-                result.setRequiredDependencies(i, dependencies.urls, dependencies.hashes, dependencies.names);
-            }
-        }
-        return result;
+        return new ModDetail(item, versionNames, mcVersionNames, versionUrls, hashes, versionIds);
     }
 
     private DependencyBundle getRequiredDependencies(JsonObject fileInfo, String gameVersion) {
@@ -190,6 +185,17 @@ public class CurseforgeApi implements ModpackApi{
             this.hashes = hashes.toArray(new String[0]);
             this.names = names.toArray(new String[0]);
         }
+    }
+
+    @Override
+    public void resolveRequiredDependencies(ModDetail detail, int selectedVersion) {
+        if (detail.dependencyUrls[selectedVersion] != null || detail.versionIds == null) return;
+        String versionId = detail.versionIds[selectedVersion];
+        JsonObject response = mApiHandler.get("mods/" + detail.id + "/files/" + versionId, JsonObject.class);
+        JsonObject file = GsonJsonUtils.getJsonObjectSafe(response, "data");
+        DependencyBundle dependencies = file == null ? null : getRequiredDependencies(file, detail.mcVersionNames[selectedVersion]);
+        if (dependencies != null) detail.setRequiredDependencies(selectedVersion, dependencies.urls, dependencies.hashes, dependencies.names);
+        else detail.setRequiredDependencies(selectedVersion, new String[0], new String[0], new String[0]);
     }
 
     @Override

@@ -95,4 +95,7 @@ public interface ModpackApi {
      * @param selectedVersion The selected version
      */
     ModLoader installMod(ModDetail modDetail, int selectedVersion) throws IOException;
+
+    /** Resolves only the dependencies for the version the user actually selected. */
+    default void resolveRequiredDependencies(ModDetail modDetail, int selectedVersion) throws IOException { }
 }

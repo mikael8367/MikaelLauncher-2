@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Group all apis under the same umbrella, as another layer of abstraction
@@ -31,6 +32,7 @@ public class CommonApi implements ModpackApi {
     private final ModpackApi mCurseforgeApi;
     private final ModpackApi mModrinthApi;
     private final ModpackApi[] mModpackApis;
+    private final ConcurrentHashMap<String, ModDetail> mDetailCache = new ConcurrentHashMap<>();
 
     public CommonApi(String curseforgeApiKey) {
         mCurseforgeApi = new CurseforgeApi(curseforgeApiKey);
@@ -110,7 +112,12 @@ public class CommonApi implements ModpackApi {
     @Override
     public ModDetail getModDetails(ModItem item) {
         Log.i("CommonApi", "Invoking getModDetails on item.apiSource="+item.apiSource +" item.title="+item.title);
-        return getModpackApi(item.apiSource).getModDetails(item);
+        String cacheKey = item.apiSource + ":" + item.id;
+        ModDetail cached = mDetailCache.get(cacheKey);
+        if (cached != null) return cached;
+        ModDetail loaded = getModpackApi(item.apiSource).getModDetails(item);
+        if (loaded != null) mDetailCache.put(cacheKey, loaded);
+        return loaded;
     }
 
     @Override
@@ -123,6 +130,7 @@ public class CommonApi implements ModpackApi {
     }
 
     private void installIndividualContent(ModDetail detail, int selectedVersion) throws IOException {
+        getModpackApi(detail.apiSource).resolveRequiredDependencies(detail, selectedVersion);
         LauncherProfiles.load();
             String targetDir = LauncherPreferences.DEFAULT_PREF.getString("curseforge_target_game_dir", null);
             File base = targetDir == null || targetDir.isEmpty()

@@ -9,6 +9,7 @@ public class ModDetail extends ModItem {
     /* A cheap way to map from the front facing name to the underlying id */
     public String[] versionNames;
     public String [] mcVersionNames;
+    public String[] versionIds;
     public String[] versionUrls;
     /* SHA 1 hashes, null if a hash is unavailable */
     public String[] versionHashes;
@@ -16,12 +17,13 @@ public class ModDetail extends ModItem {
     public String[][] dependencyUrls;
     public String[][] dependencyHashes;
     public String[][] dependencyNames;
-    public ModDetail(ModItem item, String[] versionNames, String[] mcVersionNames, String[] versionUrls, String[] hashes) {
+    public ModDetail(ModItem item, String[] versionNames, String[] mcVersionNames, String[] versionUrls, String[] hashes, String[] versionIds) {
         super(item.apiSource, item.contentType, item.id, item.title, item.description, item.imageUrl);
         this.versionNames = versionNames;
         this.mcVersionNames = mcVersionNames;
         this.versionUrls = versionUrls;
         this.versionHashes = hashes;
+        this.versionIds = versionIds;
         this.dependencyUrls = new String[versionUrls.length][];
         this.dependencyHashes = new String[versionUrls.length][];
         this.dependencyNames = new String[versionUrls.length][];

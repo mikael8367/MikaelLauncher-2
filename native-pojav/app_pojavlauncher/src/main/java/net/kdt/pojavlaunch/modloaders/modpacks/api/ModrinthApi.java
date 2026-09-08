@@ -106,9 +106,11 @@ public class ModrinthApi implements ModpackApi{
         String[] mcNames = new String[response.size()];
         String[] urls = new String[response.size()];
         String[] hashes = new String[response.size()];
+        String[] versionIds = new String[response.size()];
 
         for (int i=0; i<response.size(); ++i) {
             JsonObject version = response.get(i).getAsJsonObject();
+            versionIds[i] = version.get("id").getAsString();
             names[i] = version.get("name").getAsString();
             mcNames[i] = version.get("game_versions").getAsJsonArray().get(0).getAsString();
             urls[i] = version.get("files").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
@@ -123,12 +125,7 @@ public class ModrinthApi implements ModpackApi{
             hashes[i] = hashesMap.get("sha1").getAsString();
         }
 
-        ModDetail result = new ModDetail(item, names, mcNames, urls, hashes);
-        for (int i = 0; i < response.size(); i++) {
-            DependencyBundle dependencies = getRequiredDependencies(response.get(i).getAsJsonObject());
-            if (dependencies != null) result.setRequiredDependencies(i, dependencies.urls, dependencies.hashes, dependencies.names);
-        }
-        return result;
+        return new ModDetail(item, names, mcNames, urls, hashes, versionIds);
     }
 
     private DependencyBundle getRequiredDependencies(JsonObject version) {
@@ -160,6 +157,15 @@ public class ModrinthApi implements ModpackApi{
             this.urls = urls.toArray(new String[0]); this.hashes = hashes.toArray(new String[0]);
             this.names = names.toArray(new String[0]);
         }
+    }
+
+    @Override
+    public void resolveRequiredDependencies(ModDetail detail, int selectedVersion) {
+        if (detail.dependencyUrls[selectedVersion] != null || detail.versionIds == null) return;
+        JsonObject version = mApiHandler.get("version/" + detail.versionIds[selectedVersion], JsonObject.class);
+        DependencyBundle dependencies = version == null ? null : getRequiredDependencies(version);
+        if (dependencies != null) detail.setRequiredDependencies(selectedVersion, dependencies.urls, dependencies.hashes, dependencies.names);
+        else detail.setRequiredDependencies(selectedVersion, new String[0], new String[0], new String[0]);
     }
 
     @Override
