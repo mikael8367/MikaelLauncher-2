@@ -114,23 +114,27 @@ public class LauncherPreferenceVideoFragment extends LauncherPreferenceFragment 
         boolean ultra = "ultra".equals(profile);
         boolean turbo = "turbo".equals(profile) || ultra;
         boolean eco = "eco".equals(profile);
+        int targetResolution = ultra ? 85 : 100;
         LauncherPreferences.DEFAULT_PREF.edit()
                 .putBoolean("uncapped_fps", turbo)
                 .putBoolean("force_vsync", eco)
-                .putBoolean("sustainedPerformance", false)
+                .putBoolean("sustainedPerformance", ultra)
                 .putBoolean("bigCoreAffinity", turbo)
                 .putBoolean("max_fps_mode", ultra)
                 .putBoolean("alternate_surface", !eco)
+                .putInt("resolutionRatio", targetResolution)
                 .apply();
         LauncherPreferences.PREF_FORCE_VSYNC = eco;
-        LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = false;
+        LauncherPreferences.PREF_SUSTAINED_PERFORMANCE = ultra;
         LauncherPreferences.PREF_BIG_CORE_AFFINITY = turbo;
         LauncherPreferences.PREF_USE_ALTERNATE_SURFACE = !eco;
+        LauncherPreferences.PREF_SCALE_FACTOR = targetResolution / 100f;
         requirePreference("uncapped_fps", SwitchPreferenceCompat.class).setChecked(turbo);
         requirePreference("force_vsync", SwitchPreferenceCompat.class).setChecked(eco);
-        requirePreference("sustainedPerformance", SwitchPreference.class).setChecked(false);
+        requirePreference("sustainedPerformance", SwitchPreference.class).setChecked(ultra);
         requirePreference("bigCoreAffinity", SwitchPreferenceCompat.class).setChecked(turbo);
         requirePreference("alternate_surface", SwitchPreferenceCompat.class).setChecked(!eco);
+        requirePreference("resolutionRatio", CustomSeekBarPreference.class).setValue(targetResolution);
     }
 
     private void computeVisibility(){

@@ -116,15 +116,18 @@ public class LauncherPreferences {
         PREF_ZINK_THREADED = DEFAULT_PREF.getBoolean("zink_threaded", true);
         PREF_RENDERER_PROFILE = DEFAULT_PREF.getString("renderer_profile", "performance");
 
-        if ("turbo".equals(DEFAULT_PREF.getString("performance_profile", "balanced"))) {
-            PREF_SUSTAINED_PERFORMANCE = false;
+        String performanceProfile = DEFAULT_PREF.getString("performance_profile", "balanced");
+        if ("turbo".equals(performanceProfile) || "ultra".equals(performanceProfile)) {
+            boolean ultra = "ultra".equals(performanceProfile);
+            PREF_SUSTAINED_PERFORMANCE = ultra;
             PREF_FORCE_VSYNC = false;
             PREF_BIG_CORE_AFFINITY = true;
             DEFAULT_PREF.edit()
-                    .putBoolean("sustainedPerformance", false)
+                    .putBoolean("sustainedPerformance", ultra)
                     .putBoolean("force_vsync", false)
                     .putBoolean("bigCoreAffinity", true)
                     .putBoolean("uncapped_fps", true)
+                    .putBoolean("max_fps_mode", ultra)
                     .apply();
         }
 
