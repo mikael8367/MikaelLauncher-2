@@ -61,6 +61,14 @@ public interface ModpackApi {
             try {
                 ModLoader loaderInfo = installMod(modDetail, selectedVersion);
                 if (loaderInfo == null) {
+                    // Individual mods, resource packs and worlds are downloaded directly
+                    // by CommonApi.installIndividualContent(). They intentionally do not
+                    // produce a ModLoader, so null means success for those content types.
+                    if (modDetail != null && !modDetail.isModpack) {
+                        Tools.runOnUiThread(() -> android.widget.Toast.makeText(context,
+                                "Conteúdo instalado com sucesso", android.widget.Toast.LENGTH_SHORT).show());
+                        return;
+                    }
                     Tools.showErrorRemote(context, R.string.modpack_install_download_failed,
                             new IOException("Não foi possível preparar a versão selecionada"));
                     return;
