@@ -33,7 +33,8 @@ public class ProfileTypeSelectFragment extends Fragment {
                 tryInstall(FabricInstallFragment.class, FabricInstallFragment.TAG));
         view.findViewById(R.id.modded_profile_forge).setOnClickListener((v)->
                 tryInstall(ForgeInstallFragment.class, ForgeInstallFragment.TAG));
-        view.findViewById(R.id.modded_profile_forge_optifine).setOnClickListener(v -> showForgeOptiFineFlow());
+        view.findViewById(R.id.modded_profile_forge_optifine).setOnClickListener(v ->
+                tryInstall(ForgeOptiFineInstallFragment.class, ForgeOptiFineInstallFragment.TAG));
         view.findViewById(R.id.modded_profile_modpack).setOnClickListener((v)->
                 tryInstall(SearchModFragment.class, SearchModFragment.TAG));
         view.findViewById(R.id.modded_profile_quilt).setOnClickListener((v)->
@@ -50,19 +51,4 @@ public class ProfileTypeSelectFragment extends Fragment {
         }
     }
 
-    private void showForgeOptiFineFlow() {
-        if (Tools.isDemoProfile(requireContext())) {
-            Toast.makeText(requireContext(), R.string.toast_not_available_demo, Toast.LENGTH_LONG).show();
-            return;
-        }
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle(R.string.mikael_forge_optifine_title)
-                .setMessage(R.string.mikael_forge_optifine_message)
-                .setPositiveButton(R.string.mikael_forge_optifine_forge,
-                        (dialog, which) -> tryInstall(ForgeInstallFragment.class, ForgeInstallFragment.TAG))
-                .setNegativeButton(R.string.mikael_forge_optifine_optifine,
-                        (dialog, which) -> tryInstall(OptiFineInstallFragment.class, OptiFineInstallFragment.TAG))
-                .setNeutralButton(android.R.string.cancel, null)
-                .show();
-    }
 }

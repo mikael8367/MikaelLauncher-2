@@ -372,6 +372,16 @@ public class JREUtils {
 
             LifecycleAwareAlertDialog.haltOnDialog(activity.getLifecycle(), activity, dialogCreator);
         }
+        String optiFineAfter = activity.getIntent().getStringExtra("installOptiFineAfter");
+        if (optiFineAfter != null && !optiFineAfter.isEmpty()) {
+            activity.getIntent().removeExtra("installOptiFineAfter");
+            List<String> optiFineArgs = new ArrayList<>();
+            optiFineArgs.add("-javaagent:" + Tools.DIR_DATA + "/forge_installer/forge_installer.jar=OFNPS");
+            optiFineArgs.add("-jar");
+            optiFineArgs.add(optiFineAfter);
+            launchJavaVM(activity, runtime, null, optiFineArgs, LauncherPreferences.PREF_CUSTOM_JAVA_ARGS);
+            return;
+        }
         Tools.fullyExit();
     }
 
