@@ -207,14 +207,15 @@ public class JREUtils {
         }
 
         envMap.put("MESA_GLSL_CACHE_DIR", Tools.DIR_CACHE.getAbsolutePath());
-        boolean turboProfile = "turbo".equals(LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"));
-        envMap.put("MESA_SHADER_CACHE_MAX_SIZE", turboProfile ? "1G" : "512M");
+        String performanceProfile = LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced");
+        boolean aggressiveProfile = "turbo".equals(performanceProfile) || "ultra".equals(performanceProfile);
+        envMap.put("MESA_SHADER_CACHE_MAX_SIZE", aggressiveProfile ? "1G" : "512M");
         envMap.put("MESA_SHADER_CACHE_DISABLE", LauncherPreferences.PREF_SHADER_CACHE_ENABLED ? "false" : "true");
         if ("debug".equals(LauncherPreferences.PREF_RENDERER_PROFILE)) {
             envMap.put("LIBGL_DEBUG", "verbose");
             envMap.put("MESA_DEBUG", "1");
         }
-        if ("turbo".equals(LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"))
+        if (aggressiveProfile
                 && !"compatibility".equals(LauncherPreferences.PREF_RENDERER_PROFILE)) {
             // These are ignored by renderers that do not support them and reduce driver
             // overhead on Mesa/Zink-compatible devices.
@@ -333,7 +334,8 @@ public class JREUtils {
         //Add automatically generated args
         userArgs.add("-Xms" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
         userArgs.add("-Xmx" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
-        if ("turbo".equals(LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"))) {
+        String performanceProfile = LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced");
+        if ("turbo".equals(performanceProfile) || "ultra".equals(performanceProfile)) {
             // Supported by the bundled Java 8, 17 and 21 runtimes. Keep these flags out of
             // Balanced/Eco because G1 can cost more CPU on low-memory devices.
             userArgs.add("-XX:+UseG1GC");
@@ -343,6 +345,15 @@ public class JREUtils {
             userArgs.add("-XX:+UseStringDeduplication");
             userArgs.add("-XX:InitiatingHeapOccupancyPercent=20");
             userArgs.add("-XX:G1ReservePercent=20");
+            if ("ultra".equals(performanceProfile)) {
+                // Aggressive but supported G1 tuning for Java 8/17/21. Avoid experimental
+                // flags that can abort startup on vendor-specific Android runtimes.
+                userArgs.add("-XX:MaxGCPauseMillis=35");
+                userArgs.add("-XX:G1RSetUpdatingPauseTimePercent=5");
+                userArgs.add("-XX:ConcGCThreads=2");
+                userArgs.add("-XX:ParallelGCThreads=" + Math.max(2, Math.min(6,
+                        java.lang.Runtime.getRuntime().availableProcessors())));
+            }
         }
         if(LOCAL_RENDERER != null) userArgs.add("-Dorg.lwjgl.opengl.libname=" + graphicsLib);
 
