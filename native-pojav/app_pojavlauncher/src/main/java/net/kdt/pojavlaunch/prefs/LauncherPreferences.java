@@ -15,9 +15,11 @@ import android.util.Log;
 
 import net.kdt.pojavlaunch.*;
 import net.kdt.pojavlaunch.multirt.MultiRTUtils;
+import net.kdt.pojavlaunch.utils.GLInfoUtils;
 import net.kdt.pojavlaunch.utils.JREUtils;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public class LauncherPreferences {
     public static final String PREF_KEY_CURRENT_PROFILE = "currentProfile";
@@ -76,6 +78,7 @@ public class LauncherPreferences {
         //Required for CTRLDEF_FILE and MultiRT
         Tools.initStorageConstants(ctx);
         boolean isDevicePowerful = isDevicePowerful(ctx);
+        boolean entryLevelPowerVR = isEntryLevelPowerVR(ctx);
 
         PREF_RENDERER = DEFAULT_PREF.getString("renderer", "opengles2");
         PREF_BUTTONSIZE = DEFAULT_PREF.getInt("buttonscale", 100);
@@ -88,7 +91,8 @@ public class LauncherPreferences {
         PREF_CHECK_LIBRARY_SHA = DEFAULT_PREF.getBoolean("checkLibraries",true);
         PREF_DISABLE_GESTURES = DEFAULT_PREF.getBoolean("disableGestures",false);
         PREF_DISABLE_SWAP_HAND = DEFAULT_PREF.getBoolean("disableDoubleTap", false);
-        PREF_RAM_ALLOCATION = DEFAULT_PREF.getInt("allocation", findBestRAMAllocation(ctx));
+        int defaultRam = entryLevelPowerVR ? 1024 : findBestRAMAllocation(ctx);
+        PREF_RAM_ALLOCATION = DEFAULT_PREF.getInt("allocation", defaultRam);
         PREF_CUSTOM_JAVA_ARGS = DEFAULT_PREF.getString("javaArgs", "");
         PREF_SUSTAINED_PERFORMANCE = DEFAULT_PREF.getBoolean("sustainedPerformance", false);
         PREF_VIRTUAL_MOUSE_START = DEFAULT_PREF.getBoolean("mouse_start", false);
@@ -115,6 +119,21 @@ public class LauncherPreferences {
         PREF_SHADER_CACHE_ENABLED = DEFAULT_PREF.getBoolean("shader_cache_enabled", true);
         PREF_ZINK_THREADED = DEFAULT_PREF.getBoolean("zink_threaded", true);
         PREF_RENDERER_PROFILE = DEFAULT_PREF.getString("renderer_profile", "performance");
+
+        if (entryLevelPowerVR && !DEFAULT_PREF.contains("a12_compatibility_applied")) {
+            DEFAULT_PREF.edit()
+                    .putInt("allocation", defaultRam)
+                    .putString("renderer", "opengles2")
+                    .putBoolean("uncapped_fps", true)
+                    .putBoolean("bigCoreAffinity", true)
+                    .putBoolean("force_vsync", false)
+                    .putBoolean("a12_compatibility_applied", true)
+                    .apply();
+            PREF_RENDERER = "opengles2";
+            PREF_RAM_ALLOCATION = defaultRam;
+            PREF_BIG_CORE_AFFINITY = true;
+            PREF_FORCE_VSYNC = false;
+        }
 
         String performanceProfile = DEFAULT_PREF.getString("performance_profile", "balanced");
         if ("turbo".equals(performanceProfile) || "ultra".equals(performanceProfile)) {
@@ -202,6 +221,19 @@ public class LauncherPreferences {
         if (Runtime.getRuntime().availableProcessors() <= 4) return false;
         if (hasAllCoreSameFreq()) return false;
         return true;
+    }
+
+    private static boolean isEntryLevelPowerVR(Context context) {
+        String device = (Build.HARDWARE + " " + Build.DEVICE + " " + Build.MODEL).toLowerCase(Locale.ROOT);
+        if (device.contains("mt6765") || device.contains("a12") || device.contains("sm-a125")) return true;
+        try {
+            String renderer = GLInfoUtils.getGlInfo().renderer;
+            if (renderer == null) return false;
+            renderer = renderer.toLowerCase(Locale.ROOT);
+            return renderer.contains("powervr") || renderer.contains("ge8320");
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private static boolean hasAllCoreSameFreq() {
