@@ -102,6 +102,10 @@ public class CurseforgeApi implements ModpackApi{
                     dataElement.get("name").getAsString(),
                     dataElement.get("summary").getAsString(),
                     dataElement.getAsJsonObject("logo").get("thumbnailUrl").getAsString());
+            if (dataElement.has("downloadCount") && !dataElement.get("downloadCount").isJsonNull())
+                modItem.downloadCount = dataElement.get("downloadCount").getAsLong();
+            if (dataElement.has("modCount") && !dataElement.get("modCount").isJsonNull())
+                modItem.modCount = dataElement.get("modCount").getAsInt();
             modItemList.add(modItem);
         }
         if(curseforgeSearchResult == null) curseforgeSearchResult = new CurseforgeSearchResult();

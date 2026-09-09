@@ -203,7 +203,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         private ModDetail mModDetail = null;
         private ModItem mModItem = null;
-        private final TextView mTitle, mDescription;
+        private final TextView mTitle, mDescription, mStats;
         private final ImageView mIconView, mSourceView;
         private View mExtendedLayout;
         private Spinner mExtendedSpinner;
@@ -290,6 +290,7 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             // Define click listener for the ViewHolder's View
             mTitle = view.findViewById(R.id.mod_title_textview);
             mDescription = view.findViewById(R.id.mod_body_textview);
+            mStats = view.findViewById(R.id.mod_stats_textview);
             mIconView = view.findViewById(R.id.mod_thumbnail_imageview);
             mSourceView = view.findViewById(R.id.mod_source_imageview);
         }
@@ -326,10 +327,29 @@ public class ModItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             mSourceView.setImageResource(getSourceDrawable(item.apiSource));
             mTitle.setText(item.title);
             mDescription.setText(item.description);
+            if (item.downloadCount >= 0 || item.modCount >= 0) {
+                StringBuilder stats = new StringBuilder();
+                if (item.downloadCount >= 0) stats.append("Downloads: ").append(formatCount(item.downloadCount));
+                if (item.modCount >= 0) {
+                    if (stats.length() > 0) stats.append("  •  ");
+                    stats.append("Mods: ").append(item.modCount);
+                }
+                mStats.setText(stats.toString());
+                mStats.setVisibility(View.VISIBLE);
+            } else {
+                mStats.setText("");
+                mStats.setVisibility(View.GONE);
+            }
 
             if(hasExtended()){
                 closeDetailedView();
             }
+        }
+
+        private String formatCount(long count) {
+            if (count >= 1_000_000) return String.format(Locale.US, "%.1f mi", count / 1_000_000d);
+            if (count >= 1_000) return String.format(Locale.US, "%.1f mil", count / 1_000d);
+            return Long.toString(count);
         }
 
         /** Display extended info/interaction about a modpack */

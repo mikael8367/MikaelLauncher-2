@@ -60,12 +60,27 @@
         android:maxLines="3"
 
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/mod_title_textview"
         app:layout_constraintTop_toBottomOf="@+id/mod_title_textview"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintVertical_bias="0.0"
         tools:text="Feed the beast - Reforged is a machine and magic focused modpack, with no respect for the minimum requirements of minecraft. Very long text" />
+
+    <TextView
+        android:id="@+id/mod_stats_textview"
+        style="@style/TextAppearance.AppCompat.Caption"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/padding_medium"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="@dimen/padding_medium"
+        android:textColor="@color/mikael_lime"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toStartOf="@+id/mod_title_textview"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/mod_body_textview"
+        tools:text="Downloads: 1,2 mi • Mods: 42" />
 
 
     <!--
@@ -77,7 +92,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout="@layout/view_mod_extended"
-        app:layout_constraintTop_toBottomOf="@id/mod_thumbnail_imageview"/>
+        app:layout_constraintTop_toBottomOf="@id/mod_stats_textview"/>
 
 
 

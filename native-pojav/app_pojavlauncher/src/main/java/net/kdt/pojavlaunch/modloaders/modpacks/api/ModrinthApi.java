@@ -88,6 +88,10 @@ public class ModrinthApi implements ModpackApi{
                     hit.get("description").getAsString(),
                     hit.get("icon_url").getAsString()
             );
+            if (hit.has("downloads") && !hit.get("downloads").isJsonNull())
+                items[i].downloadCount = hit.get("downloads").getAsLong();
+            if (hit.has("mod_count") && !hit.get("mod_count").isJsonNull())
+                items[i].modCount = hit.get("mod_count").getAsInt();
         }
         if(modrinthSearchResult == null) modrinthSearchResult = new ModrinthSearchResult();
         modrinthSearchResult.previousOffset += responseHits.size();

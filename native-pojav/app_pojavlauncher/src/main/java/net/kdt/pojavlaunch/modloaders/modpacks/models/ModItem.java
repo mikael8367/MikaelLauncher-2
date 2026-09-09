@@ -9,6 +9,8 @@ public class ModItem extends ModSource {
     public String description;
     public String imageUrl;
     public int contentType;
+    public long downloadCount = -1;
+    public int modCount = -1;
 
     public ModItem(int apiSource, boolean isModpack, String id, String title, String description, String imageUrl) {
         this.apiSource = apiSource;
