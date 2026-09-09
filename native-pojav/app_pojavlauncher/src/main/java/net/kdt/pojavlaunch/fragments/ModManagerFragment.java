@@ -25,6 +25,7 @@ import net.kdt.pojavlaunch.PojavApplication;
 import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
+import net.kdt.pojavlaunch.modloaders.modpacks.api.CurseforgeApi;
 import net.kdt.pojavlaunch.value.launcherprofiles.LauncherProfiles;
 import net.kdt.pojavlaunch.value.launcherprofiles.MinecraftProfile;
 
@@ -211,6 +212,14 @@ public class ModManagerFragment extends Fragment {
                 if (isPackFile(p)) hasRecognizedFiles = true;
             }
         }
+        if (hasManifest && isCurseforgeManifest(zipFile)) {
+            // CurseForge exports keep most mods in the manifest as project/file IDs;
+            // only overrides are physically present in the ZIP. Reuse the existing
+            // downloader so the complete pack is installed, not just its configs.
+            CurseforgeApi api = new CurseforgeApi(requireContext().getString(R.string.curseforge_api_key));
+            api.installLocalModpack(zipFile, modsDir.getParentFile());
+            return new ImportResult("Modpack CurseForge instalado com dependências");
+        }
         if (hasModMetadata && !hasManifest && !hasMods) {
             File out = uniqueFile(modsDir, zipFile.getName().replaceFirst("(?i)\\.zip$", ".jar"));
             copyFile(zipFile, out);
@@ -239,6 +248,20 @@ public class ModManagerFragment extends Fragment {
             throw new IOException("ZIP não contém mods, overrides ou arquivos de modpack reconhecidos");
         }
         return new ImportResult("Modpack importado: " + extracted + " arquivo(s) extraído(s)");
+    }
+
+    private boolean isCurseforgeManifest(File zipFile) throws IOException {
+        try (ZipFile zip = new ZipFile(zipFile)) {
+            ZipEntry entry = zip.getEntry("manifest.json");
+            if (entry == null) return false;
+            StringBuilder json = new StringBuilder();
+            try (InputStream in = zip.getInputStream(entry)) {
+                byte[] buffer = new byte[4096]; int count;
+                while ((count = in.read(buffer)) != -1) json.append(new String(buffer, 0, count, StandardCharsets.UTF_8));
+            }
+            return json.indexOf("\"manifestType\"") >= 0 && json.indexOf("\"minecraftModpack\"") >= 0
+                    && json.indexOf("\"files\"") >= 0;
+        }
     }
 
     private File destinationForZipPath(String path) {

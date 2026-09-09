@@ -204,6 +204,12 @@ public class CurseforgeApi implements ModpackApi{
         return ModpackInstaller.installModpack(modDetail, selectedVersion, this::installCurseforgeZip);
     }
 
+    /** Installs a local CurseForge export, including manifest-listed dependencies. */
+    public void installLocalModpack(File zipFile, File instanceDestination) throws IOException {
+        ModLoader loader = installCurseforgeZip(zipFile, instanceDestination);
+        if (loader == null) throw new IOException("Manifest CurseForge inválido ou incompleto");
+    }
+
 
     private int getPaginatedDetails(ArrayList<JsonObject> objectList, int index, String modId) {
         HashMap<String, Object> params = new HashMap<>();
