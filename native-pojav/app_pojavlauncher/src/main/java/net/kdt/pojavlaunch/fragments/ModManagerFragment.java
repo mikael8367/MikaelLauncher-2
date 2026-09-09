@@ -41,6 +41,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
@@ -151,7 +152,129 @@ public class ModManagerFragment extends Fragment {
         } catch (Exception e) { return false; }
     }
 
-    private void importMod(Uri uri) { if(modsDir==null)return; PojavApplication.sExecutorService.execute(()->{try{if(!modsDir.exists()&&!modsDir.mkdirs())throw new IOException("Pasta mods indisponível");String name=Tools.getFileName(requireContext(),uri);if(name==null||name.isEmpty())name="imported-mod.jar";name=name.replaceAll("[^A-Za-z0-9._-]","_");if(!name.endsWith(".jar"))name+=".jar";final String importedName=name;File out=new File(modsDir,importedName);try(InputStream in=requireContext().getContentResolver().openInputStream(uri);FileOutputStream fos=new FileOutputStream(out)){if(in==null)throw new IOException("Arquivo ilegível");byte[]b=new byte[8192];int n;while((n=in.read(b))!=-1)fos.write(b,0,n);}Tools.runOnUiThread(()->{toast("Mod importado: "+importedName);refresh();});}catch(Exception e){Tools.runOnUiThread(()->toast("Falha ao importar: "+e.getMessage()));}}); }
+    private void importMod(Uri uri) {
+        if (modsDir == null) return;
+        PojavApplication.sExecutorService.execute(() -> {
+            File temp = null;
+            try {
+                if (!modsDir.exists() && !modsDir.mkdirs()) throw new IOException("Pasta mods indisponível");
+                String name = Tools.getFileName(requireContext(), uri);
+                if (name == null || name.isEmpty()) name = "imported-mod.jar";
+                name = name.replaceAll("[^A-Za-z0-9._-]", "_");
+                temp = new File(Tools.DIR_CACHE, "mikael-import-" + System.nanoTime() + ".zip");
+                try (InputStream in = requireContext().getContentResolver().openInputStream(uri);
+                     FileOutputStream fos = new FileOutputStream(temp)) {
+                    if (in == null) throw new IOException("Arquivo ilegível");
+                    copy(in, fos);
+                }
+
+                String lower = name.toLowerCase(java.util.Locale.ROOT);
+                if (lower.endsWith(".jar")) {
+                    File out = uniqueFile(modsDir, name);
+                    copyFile(temp, out);
+                    finishImport("Mod importado: " + out.getName());
+                } else if (lower.endsWith(".zip")) {
+                    ImportResult result = importZip(temp);
+                    finishImport(result.message);
+                } else {
+                    throw new IOException("Formato não suportado: use .jar ou .zip");
+                }
+            } catch (Exception e) {
+                final String message = e.getMessage() == null ? "arquivo inválido" : e.getMessage();
+                Tools.runOnUiThread(() -> toast("Falha ao importar: " + message));
+            } finally {
+                if (temp != null) temp.delete();
+            }
+        });
+    }
+
+    private static class ImportResult {
+        final String message;
+        ImportResult(String message) { this.message = message; }
+    }
+
+    private ImportResult importZip(File zipFile) throws IOException {
+        boolean hasManifest = false, hasModMetadata = false, hasMods = false, hasRecognizedFiles = false;
+        try (ZipFile zip = new ZipFile(zipFile)) {
+            java.util.Enumeration<? extends ZipEntry> entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                String path = entries.nextElement().getName().replace('\\', '/');
+                String p = path.toLowerCase(java.util.Locale.ROOT);
+                if (p.equals("manifest.json") || p.equals("modrinth.index.json") || p.endsWith("/manifest.json")) hasManifest = true;
+                if (p.endsWith("mods.toml") || p.endsWith("fabric.mod.json") || p.endsWith("mcmod.info")) hasModMetadata = true;
+                if (p.startsWith("mods/") || p.contains("/mods/")) hasMods = true;
+                if (isPackFile(p)) hasRecognizedFiles = true;
+            }
+        }
+        if (hasModMetadata && !hasManifest && !hasMods) {
+            File out = uniqueFile(modsDir, zipFile.getName().replaceFirst("(?i)\\.zip$", ".jar"));
+            copyFile(zipFile, out);
+            return new ImportResult("Mod ZIP importado como: " + out.getName());
+        }
+        int extracted = 0;
+        try (ZipFile zip = new ZipFile(zipFile)) {
+            java.util.Enumeration<? extends ZipEntry> entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.isDirectory()) continue;
+                String raw = entry.getName().replace('\\', '/');
+                String path = safeZipPath(raw);
+                if (path == null || path.isEmpty()) continue;
+                String lower = path.toLowerCase(java.util.Locale.ROOT);
+                if (lower.equals("manifest.json") || lower.equals("modrinth.index.json") || lower.endsWith("/manifest.json")) continue;
+                File destination = destinationForZipPath(path);
+                if (destination == null) continue;
+                File parent = destination.getParentFile();
+                if (parent != null && !parent.exists() && !parent.mkdirs()) throw new IOException("Não foi possível criar " + parent);
+                try (InputStream in = zip.getInputStream(entry); FileOutputStream out = new FileOutputStream(destination)) { copy(in, out); }
+                extracted++;
+            }
+        }
+        if (extracted == 0 && !hasRecognizedFiles && !hasManifest && !hasMods) {
+            throw new IOException("ZIP não contém mods, overrides ou arquivos de modpack reconhecidos");
+        }
+        return new ImportResult("Modpack importado: " + extracted + " arquivo(s) extraído(s)");
+    }
+
+    private File destinationForZipPath(String path) {
+        String lower = path.toLowerCase(java.util.Locale.ROOT);
+        if (lower.startsWith("mods/")) return new File(modsDir, safeZipPath(path.substring(5)));
+        if (lower.startsWith("overrides/")) return new File(modsDir.getParentFile(), safeZipPath(path.substring(10)));
+        if (lower.endsWith(".jar") && !lower.contains("/")) return new File(modsDir, safeZipPath(path));
+        if (isPackFile(lower) && !lower.contains("/")) return new File(modsDir.getParentFile(), safeZipPath(path));
+        return null;
+    }
+
+    private boolean isPackFile(String path) {
+        return path.endsWith(".jar") || path.startsWith("config/") || path.startsWith("resourcepacks/")
+                || path.startsWith("shaderpacks/") || path.startsWith("defaultconfigs/") || path.startsWith("kubejs/")
+                || path.startsWith("scripts/") || path.equals("options.txt") || path.equals("servers.dat");
+    }
+
+    private String safeZipPath(String path) {
+        String normalized = path.replace('\\', '/');
+        while (normalized.startsWith("/")) normalized = normalized.substring(1);
+        if (normalized.isEmpty() || normalized.contains("../") || normalized.equals("..") || normalized.contains("/..")) return null;
+        return normalized;
+    }
+
+    private File uniqueFile(File dir, String name) {
+        File out = new File(dir, name);
+        int i = 1;
+        while (out.exists()) out = new File(dir, name.replaceFirst("(\\.[^.]+)$", "-" + i++ + "$1"));
+        return out;
+    }
+
+    private void copyFile(File source, File destination) throws IOException {
+        try (InputStream in = new FileInputStream(source); FileOutputStream out = new FileOutputStream(destination)) { copy(in, out); }
+    }
+
+    private void copy(InputStream in, java.io.OutputStream out) throws IOException {
+        byte[] buffer = new byte[8192]; int count;
+        while ((count = in.read(buffer)) != -1) out.write(buffer, 0, count);
+    }
+
+    private void finishImport(String message) { Tools.runOnUiThread(() -> { toast(message); refresh(); }); }
 
     private void backupMods() { if(modsDir==null)return; PojavApplication.sExecutorService.execute(()->{try{File dir=new File(modsDir.getParentFile(),"mikael-backups");if(!dir.exists())dir.mkdirs();File zip=new File(dir,"mods-"+System.currentTimeMillis()+".zip");try(ZipOutputStream out=new ZipOutputStream(new FileOutputStream(zip))){File[]fs=modsDir.listFiles();if(fs!=null)for(File f:fs)if(f.isFile()){out.putNextEntry(new ZipEntry(f.getName()));try(FileInputStream in=new FileInputStream(f)){byte[]b=new byte[8192];int n;while((n=in.read(b))!=-1)out.write(b,0,n);}out.closeEntry();}}Tools.runOnUiThread(()->toast("Backup criado: "+zip.getName()));}catch(Exception e){Tools.runOnUiThread(()->toast("Falha no backup: "+e.getMessage()));}}); }
     private void confirmRestore() { File latest=latestBackup(); if(latest==null){toast("Nenhum backup encontrado");return;} new AlertDialog.Builder(requireContext()).setMessage("Restaurar "+latest.getName()+"? Os mods atuais serão substituídos.").setNegativeButton(android.R.string.cancel,null).setPositiveButton(android.R.string.ok,(d,w)->restore(latest)).show(); }

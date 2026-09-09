@@ -12,7 +12,7 @@
         <Button android:id="@+id/mod_manager_curseforge" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:text="CurseForge" android:textAllCaps="false"/>
         <Button android:id="@+id/mod_manager_import" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-            android:text="Importar .jar" android:textAllCaps="false"/>
+            android:text="Importar .jar / .zip" android:textAllCaps="false"/>
     </LinearLayout>
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
         <Button android:id="@+id/mod_manager_backup" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
