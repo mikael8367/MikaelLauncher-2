@@ -125,6 +125,10 @@ public class MainMenuFragment extends Fragment {
         }
     }
 
+    public void showCrashRecoveryFromReturn() {
+        if (getView() != null) getView().postDelayed(this::showCrashRecoveryDialog, 200);
+    }
+
     private void showCrashRecoveryDialog() {
         if (!isAdded()) return;
         File gameDir = getCurrentProfileDirectory();

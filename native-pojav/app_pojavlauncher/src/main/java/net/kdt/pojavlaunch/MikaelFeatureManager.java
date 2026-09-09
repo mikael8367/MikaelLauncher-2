@@ -157,6 +157,24 @@ public final class MikaelFeatureManager {
         }
     }
 
+    /** Returns true only when a crash artifact was created during this launch. */
+    public static boolean isCrashLikelyAfter(File gameDir, long launchStartedAt) {
+        if (gameDir == null) return false;
+        File crash = newestFile(new File(gameDir, "crash-reports"), ".txt");
+        if (crash != null && crash.lastModified() >= launchStartedAt - 2000L) return true;
+        File log = new File(gameDir, "logs/latest.log");
+        if (!log.isFile() || log.lastModified() < launchStartedAt - 2000L) return false;
+        try {
+            String text = readTail(log, 512 * 1024);
+            return containsAny(text, "Minecraft crashed!", "---- Minecraft Crash Report ----",
+                    "FATAL ERROR", "Exception in thread", "OutOfMemoryError",
+                    "MixinApplyError", "ModLoadingException", "Could not initialize GLFW",
+                    "java.lang.NoClassDefFoundError");
+        } catch (IOException ignored) {
+            return false;
+        }
+    }
+
     public static String analyzeLogs(File gameDir) {
         File latestLog = new File(gameDir, "logs/latest.log");
         StringBuilder result = new StringBuilder("Diagnóstico MikaelLauncher\n\n");

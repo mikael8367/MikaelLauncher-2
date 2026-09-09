@@ -4,6 +4,7 @@ import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 import android.Manifest;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -67,6 +68,19 @@ public class LauncherActivity extends BaseActivity {
     private ModloaderInstallTracker mInstallTracker;
     private NotificationManager mNotificationManager;
     private volatile boolean mRuntimesReady;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent.getBooleanExtra("mikael_crash_recovery", false)) {
+            Fragment fragment = getSupportFragmentManager().findFragmentById(mFragmentView.getId());
+            if (fragment instanceof MainMenuFragment) {
+                intent.removeExtra("mikael_crash_recovery");
+                ((MainMenuFragment) fragment).showCrashRecoveryFromReturn();
+            }
+        }
+    }
 
     /* Allows to switch from one button "type" to another */
     private final FragmentManager.FragmentLifecycleCallbacks mFragmentCallbackListener = new FragmentManager.FragmentLifecycleCallbacks() {

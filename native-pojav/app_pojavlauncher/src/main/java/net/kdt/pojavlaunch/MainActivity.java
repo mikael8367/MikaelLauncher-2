@@ -96,6 +96,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     public ArrayAdapter<String> ingameControlsEditorArrayAdapter;
     public AdapterView.OnItemClickListener ingameControlsEditorListener;
     private GameService.LocalBinder mServiceBinder;
+    private long mGameLaunchStartedAt;
 
     private QuickSettingSideDialog mQuickSettingSideDialog;
 
@@ -365,13 +366,16 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         Tools.printLauncherInfo(versionId, Tools.isValidString(minecraftProfile.javaArgs) ? minecraftProfile.javaArgs : LauncherPreferences.PREF_CUSTOM_JAVA_ARGS);
         JREUtils.redirectAndPrintJRELog();
         LauncherProfiles.load();
+        mGameLaunchStartedAt = System.currentTimeMillis();
         int requiredJavaVersion = 8;
         if(version.javaVersion != null) requiredJavaVersion = version.javaVersion.majorVersion;
         Tools.launchMinecraft(this, minecraftAccount, minecraftProfile, versionId, requiredJavaVersion);
         // launchMinecraft blocks until Minecraft exits, including a crash.
         Tools.runOnUiThread(()-> {
             if (mServiceBinder != null) mServiceBinder.isActive = false;
-            returnToLauncherAfterGame(false);
+            File gameDir = Tools.getGameDirPath(minecraftProfile);
+            boolean crashLikely = MikaelFeatureManager.isCrashLikelyAfter(gameDir, mGameLaunchStartedAt);
+            returnToLauncherAfterGame(crashLikely);
         });
     }
 
