@@ -205,6 +205,42 @@ public final class MikaelFeatureManager {
         return result.toString();
     }
 
+    /** Applies only reversible, high-confidence fixes; no mod is deleted. */
+    public static String autoFixKnownProblem(File gameDir) {
+        if (gameDir == null) return "Não foi possível localizar a instalação.";
+        File log = new File(gameDir, "logs/latest.log");
+        String text;
+        try { text = log.isFile() ? readTail(log, 4 * 1024 * 1024) : ""; }
+        catch (IOException e) { return "Não foi possível ler o latest.log: " + e.getMessage(); }
+        if (containsAny(text, "3dskinplayers.mixins.json", "does not specify \"minVersion\"")) {
+            File candidate = findMod(new File(gameDir, "mods"), "3dskinplayers", "skinplayers", "3dskin");
+            if (candidate != null) {
+                File disabled = setContentEnabled(candidate, false);
+                if (disabled != candidate && disabled.exists()) return "Correção aplicada: " + candidate.getName()
+                        + " foi desativado com segurança, sem apagar o arquivo. Tente iniciar novamente.";
+                return "Encontrei " + candidate.getName() + ", mas não consegui desativá-lo. Desative-o no gerenciador de mods.";
+            }
+            return "O erro aponta para o mod 3DSkinPlayers, mas o arquivo não está na pasta mods. Instale a versão correta ou remova o arquivo antigo.";
+        }
+        if (containsAny(text, "OutOfMemoryError", "GC overhead limit exceeded")) return "Correção: reduza a RAM Java ou feche aplicativos em segundo plano.";
+        if (containsAny(text, "Unrecognized VM option", "Could not create the Java Virtual Machine")) return "Correção: restaure os argumentos Java padrão nas configurações da versão.";
+        if (containsAny(text, "Could not initialize GLFW", "EGL_NOT_INITIALIZED", "Unable to create window")) return "Correção: troque o renderer para GL4ES e tente novamente.";
+        return "Nenhuma correção automática segura foi identificada. Abra o gerenciador e desative o último mod instalado.";
+    }
+
+    private static File findMod(File mods, String... terms) {
+        File[] files = mods == null ? null : mods.listFiles((dir, name) -> {
+            String lower = name.toLowerCase(Locale.US);
+            return lower.endsWith(".jar") || lower.endsWith(".jar.mikael-disabled");
+        });
+        if (files == null) return null;
+        for (File file : files) {
+            String lower = file.getName().toLowerCase(Locale.US);
+            for (String term : terms) if (lower.contains(term)) return file;
+        }
+        return null;
+    }
+
     private static int count(String text, String token) {
         int total = 0, index = 0;
         while ((index = text.indexOf(token, index)) >= 0) { total++; index += token.length(); }

@@ -132,10 +132,26 @@ public class MainMenuFragment extends Fragment {
         if (!isAdded()) return;
         File gameDir = getCurrentProfileDirectory();
         String diagnosis = MikaelFeatureManager.analyzeLogs(gameDir);
+        if (diagnosis.contains("3dskinplayers.mixins.json") || diagnosis.contains("minVersion")) {
+            diagnosis += "\n\nSOLUÇÃO: o mod 3DSkinPlayers é incompatível com esta versão."
+                    + " Use Resolver automaticamente para desativá-lo sem apagar o arquivo.";
+        } else if (diagnosis.contains("OutOfMemoryError")) {
+            diagnosis += "\n\nSOLUÇÃO: reduzir a RAM Java ou fechar aplicativos em segundo plano.";
+        }
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle("Resolver crash / gerenciar mods")
                 .setMessage(diagnosis)
-                .setPositiveButton("Gerenciar mods", (dialog, which) -> {
+                .setPositiveButton("Resolver automaticamente", (dialog, which) -> {
+                    PojavApplication.sExecutorService.execute(() -> {
+                        String result = MikaelFeatureManager.autoFixKnownProblem(gameDir);
+                        Tools.runOnUiThread(() -> new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                                .setTitle("Resultado da correção")
+                                .setMessage(result)
+                                .setPositiveButton("OK", null)
+                                .show());
+                    });
+                })
+                .setNeutralButton("Gerenciar mods", (dialog, which) -> {
                     Bundle args = new Bundle();
                     args.putString("curseforge_target_game_dir", gameDir.getAbsolutePath());
                     LauncherProfiles.load();
@@ -143,7 +159,6 @@ public class MainMenuFragment extends Fragment {
                     if (profile != null) args.putString("curseforge_mc_version", profile.lastVersionId);
                     Tools.swapFragment(requireActivity(), ModManagerFragment.class, ModManagerFragment.TAG, args);
                 })
-                .setNeutralButton("Abrir pasta", (dialog, which) -> Tools.openPath(requireContext(), gameDir, false))
                 .setNegativeButton("Fechar", null)
                 .show();
     }
