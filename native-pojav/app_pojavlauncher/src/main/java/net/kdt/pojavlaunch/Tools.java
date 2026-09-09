@@ -311,6 +311,11 @@ public final class Tools {
                 && "turbo".equals(LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced"))) {
             applyLegacyTurboPreset(gamedir);
         }
+        String performanceProfile = LauncherPreferences.DEFAULT_PREF.getString("performance_profile", "balanced");
+        if (isModernMinecraft(versionId, versionInfo)
+                && ("turbo".equals(performanceProfile) || "ultra".equals(performanceProfile))) {
+            applyModernPerformancePreset(gamedir);
+        }
 
 
         // Pre-process specific files
@@ -357,6 +362,15 @@ public final class Tools {
             javaArgList.add("-XX:MaxTenuringThreshold=1");
             javaArgList.add("-XX:G1RSetUpdatingPauseTimePercent=5");
         }
+        if (isModernMinecraft(versionId, versionInfo) && runtime.javaVersion >= 17) {
+            // Conservative flags shared by Java 17/21 for modern Minecraft.
+            javaArgList.add("-XX:+UseG1GC");
+            javaArgList.add("-XX:MaxGCPauseMillis=60");
+            javaArgList.add("-XX:InitiatingHeapOccupancyPercent=30");
+            javaArgList.add("-XX:G1ReservePercent=15");
+            javaArgList.add("-XX:+ParallelRefProcEnabled");
+            javaArgList.add("-XX:+DisableExplicitGC");
+        }
         javaArgList.add("-cp");
         javaArgList.add(launchClassPath + ":" + getLWJGL3ClassPath());
 
@@ -375,6 +389,37 @@ public final class Tools {
         return versionId.contains("1.12.2")
                 || (versionInfo.id != null && versionInfo.id.contains("1.12.2"))
                 || (versionInfo.inheritsFrom != null && versionInfo.inheritsFrom.contains("1.12.2"));
+    }
+
+    private static boolean isModernMinecraft(String versionId, JMinecraftVersionList.Version versionInfo) {
+        String id = versionId == null ? "" : versionId;
+        if (versionInfo != null && versionInfo.id != null) id = versionInfo.id;
+        return id.startsWith("1.20.") || id.startsWith("1.21.") || id.equals("1.20") || id.equals("1.21");
+    }
+
+    private static void applyModernPerformancePreset(File gameDir) {
+        try {
+            MCOptionUtils.load(gameDir.getAbsolutePath());
+            setOptionIfPresent("renderDistance", "6");
+            setOptionIfPresent("simulationDistance", "4");
+            setOptionIfPresent("particles", "minimal");
+            setOptionIfPresent("entityDistanceScaling", "0.5");
+            setOptionIfPresent("entityShadows", "false");
+            setOptionIfPresent("clouds", "false");
+            setOptionIfPresent("graphics", "fast");
+            setOptionIfPresent("biomeBlendRadius", "0");
+            setOptionIfPresent("ao", "false");
+            setOptionIfPresent("prioritizeChunkUpdates", "true");
+            setOptionIfPresent("mipmapLevels", "0");
+            setOptionIfPresent("enableVsync", "false");
+            MCOptionUtils.save();
+        } catch (Exception e) {
+            Log.w("Tools", "Could not apply modern performance preset", e);
+        }
+    }
+
+    private static void setOptionIfPresent(String key, String value) {
+        if (MCOptionUtils.get(key) != null) MCOptionUtils.set(key, value);
     }
 
     private static void applyLegacyTurboPreset(File gameDir) {
