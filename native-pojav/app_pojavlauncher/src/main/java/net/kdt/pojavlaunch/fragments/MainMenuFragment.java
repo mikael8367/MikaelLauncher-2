@@ -26,6 +26,7 @@ import net.kdt.pojavlaunch.PojavApplication;
 import net.kdt.pojavlaunch.MikaelFeatureManager;
 import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
+import net.kdt.pojavlaunch.UpdatesCatalogActivity;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
 import net.kdt.pojavlaunch.prefs.LauncherPreferences;
@@ -58,7 +59,6 @@ public class MainMenuFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Button mNewsButton = view.findViewById(R.id.news_button);
-        Button mDiscordButton = view.findViewById(R.id.discord_button);
         Button mCustomControlButton = view.findViewById(R.id.custom_control_button);
         Button mInstallJarButton = view.findViewById(R.id.install_jar_button);
         Button mShareLogsButton = view.findViewById(R.id.share_logs_button);
@@ -73,8 +73,7 @@ public class MainMenuFragment extends Fragment {
         mAccountLabel = view.findViewById(R.id.mikael_account);
         updateAccountLabel();
 
-        mNewsButton.setOnClickListener(v -> Tools.openURL(requireActivity(), Tools.URL_HOME));
-        mDiscordButton.setOnClickListener(v -> Tools.openURL(requireActivity(), getString(R.string.discord_invite)));
+        mNewsButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), UpdatesCatalogActivity.class)));
         mCustomControlButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
         mInstallJarButton.setOnClickListener(v -> runInstallerWithConfirmation(false));
         mInstallJarButton.setOnLongClickListener(v->{

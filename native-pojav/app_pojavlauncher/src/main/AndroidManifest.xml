@@ -105,6 +105,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".UpdatesCatalogActivity"
+            android:exported="false"
+            android:screenOrientation="unspecified" />
+        <activity
             android:name=".MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode"
             android:launchMode="singleTop"

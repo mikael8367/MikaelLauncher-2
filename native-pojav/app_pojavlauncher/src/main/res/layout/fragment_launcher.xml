@@ -219,19 +219,6 @@
                 android:textColor="@color/primary_text" />
 
             <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/discord_button"
-                style="@style/LauncherMenuButton.Universal"
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:gravity="center_vertical"
-                android:paddingStart="14dp"
-                android:paddingEnd="10dp"
-                android:background="@drawable/mikael_menu_button"
-                android:drawableStart="@drawable/ic_discord"
-                android:text="Hub da comunidade"
-                android:textColor="@color/primary_text" />
-
-            <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/custom_control_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"

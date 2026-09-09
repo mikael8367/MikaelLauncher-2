@@ -184,7 +184,6 @@
                 android:drawableStart="@drawable/ic_discord"
                 android:text="Comunidade Mikael"
                 android:textColor="@color/primary_text" />
-
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/custom_control_button"
                 style="@style/LauncherMenuButton.Universal"
