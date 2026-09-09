@@ -470,6 +470,11 @@ public final class Tools {
 
     public static File getGameDirPath(@NonNull MinecraftProfile minecraftProfile){
         if(minecraftProfile.gameDir != null){
+            // Custom paths below DIR_GAME_HOME are stored relatively. Preserve
+            // absolute paths as absolute so they are never redirected to the
+            // default .minecraft directory.
+            File configuredPath = new File(minecraftProfile.gameDir);
+            if (configuredPath.isAbsolute()) return configuredPath;
             if(minecraftProfile.gameDir.startsWith(Tools.LAUNCHERPROFILES_RTPREFIX))
                 return new File(minecraftProfile.gameDir.replace(Tools.LAUNCHERPROFILES_RTPREFIX,Tools.DIR_GAME_HOME+"/"));
             else

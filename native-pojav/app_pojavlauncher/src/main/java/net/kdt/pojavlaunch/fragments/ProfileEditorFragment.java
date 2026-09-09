@@ -51,6 +51,7 @@ public class ProfileEditorFragment extends Fragment implements CropperUtils.Crop
     private String mProfileKey;
     private MinecraftProfile mTempProfile = null;
     private String mValueToConsume = "";
+    private String mPendingSelectedPath;
     private Button mSaveButton, mDeleteButton, mControlSelectButton, mGameDirButton, mVersionSelectButton, mManageModsButton;
     private Spinner mDefaultRuntime, mDefaultRenderer;
     private EditText mDefaultName, mDefaultJvmArgument;
@@ -71,9 +72,11 @@ public class ProfileEditorFragment extends Fragment implements CropperUtils.Crop
         String value = (String) ExtraCore.consumeValue(ExtraConstants.FILE_SELECTOR);
         if(value != null){
             if(mValueToConsume.equals(FileSelectorFragment.BUNDLE_SELECT_FOLDER)){
-                mTempProfile.gameDir = value;
+                // The editor view may be recreated before onViewCreated(). Keep
+                // the result until the model and the TextView are initialized.
+                mPendingSelectedPath = value;
             }else{
-                mTempProfile.controlFile = value;
+                if (mTempProfile != null) mTempProfile.controlFile = value;
             }
         }
         return super.onCreateView(inflater, container, savedInstanceState);
@@ -128,6 +131,12 @@ public class ProfileEditorFragment extends Fragment implements CropperUtils.Crop
         mProfileIcon.setOnClickListener(v -> CropperUtils.startCropper(mCropperLauncher));
 
         loadValues(LauncherPreferences.DEFAULT_PREF.getString(LauncherPreferences.PREF_KEY_CURRENT_PROFILE, ""), view.getContext());
+
+        if (mPendingSelectedPath != null) {
+            mTempProfile.gameDir = mPendingSelectedPath;
+            mDefaultPath.setText(mPendingSelectedPath);
+            mPendingSelectedPath = null;
+        }
     }
 
     private View.OnClickListener getGameDirListener() {
@@ -260,11 +269,12 @@ public class ProfileEditorFragment extends Fragment implements CropperUtils.Crop
         mTempProfile.controlFile = mDefaultControl.getText().toString();
         mTempProfile.name = mDefaultName.getText().toString();
         mTempProfile.javaArgs = mDefaultJvmArgument.getText().toString();
-        mTempProfile.gameDir = mDefaultPath.getText().toString();
+        String selectedGameDir = mDefaultPath.getText().toString().trim();
+        mTempProfile.gameDir = selectedGameDir;
 
         if(mTempProfile.controlFile.isEmpty()) mTempProfile.controlFile = null;
         if(mTempProfile.javaArgs.isEmpty()) mTempProfile.javaArgs = null;
-        if(mTempProfile.gameDir.isEmpty()) mTempProfile.gameDir = null;
+        if(mTempProfile.gameDir.isEmpty() || ".".equals(mTempProfile.gameDir)) mTempProfile.gameDir = null;
 
         Runtime selectedRuntime = (Runtime) mDefaultRuntime.getSelectedItem();
         mTempProfile.javaDir = (selectedRuntime.name.equals("<Default>") || selectedRuntime.versionString == null)

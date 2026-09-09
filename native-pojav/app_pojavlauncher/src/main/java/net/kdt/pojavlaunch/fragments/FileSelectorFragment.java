@@ -91,7 +91,17 @@ public class FileSelectorFragment extends Fragment {
     }
 
     private String removeLockPath(String path){
-        return path.replace(mRootPath, ".");
+        String root = new File(mRootPath).getAbsolutePath();
+        String absolute = new File(path).getAbsolutePath();
+        if (absolute.equals(root)) return ".";
+        String prefix = root.endsWith(File.separator) ? root : root + File.separator;
+        if (absolute.startsWith(prefix)) {
+            // Keep the launcher profile format compatible: paths below the
+            // launcher root are stored relative to DIR_GAME_HOME.
+            return "." + absolute.substring(root.length());
+        }
+        // Do not silently turn an external path into .minecraft.
+        return absolute;
     }
 
     private void parseBundle(){
