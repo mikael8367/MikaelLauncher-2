@@ -242,14 +242,18 @@ public class CurseforgeApi implements ModpackApi{
             }
             ModDownloader modDownloader = new ModDownloader(new File(instanceDestination,"mods"), true);
             int fileCount = curseManifest.files.length;
+            final String minecraftVersion = curseManifest.minecraft.version;
             for(int i = 0; i < fileCount; i++) {
                 final CurseManifest.CurseFile curseFile = curseManifest.files[i];
                 modDownloader.submitDownload(()->{
                     String url = getDownloadUrl(curseFile.projectID, curseFile.fileID);
+                    boolean exactUrl = url != null;
+                    if (!exactUrl) url = getCompatibleDownloadUrl(curseFile.projectID, minecraftVersion);
                     if(url == null && curseFile.required)
                         throw new IOException("Failed to obtain download URL for "+curseFile.projectID+" "+curseFile.fileID);
                     else if(url == null) return null;
-                    return new ModDownloader.FileInfo(url, FileUtils.getFileName(url), getDownloadSha1(curseFile.projectID, curseFile.fileID));
+                    return new ModDownloader.FileInfo(url, FileUtils.getFileName(url),
+                            exactUrl ? getDownloadSha1(curseFile.projectID, curseFile.fileID) : null);
                 });
             }
             modDownloader.awaitFinish((c,m)->
@@ -314,6 +318,26 @@ public class CurseforgeApi implements ModpackApi{
         JsonObject data = GsonJsonUtils.getJsonObjectSafe(response, "data");
         if(data == null) return null;
         return getSha1FromModData(data);
+    }
+
+    private @Nullable String getCompatibleDownloadUrl(long projectID, String gameVersion) {
+        HashMap<String, Object> params = new HashMap<>();
+        params.put("gameVersion", gameVersion);
+        params.put("pageSize", 50);
+        JsonObject response = mApiHandler.get("mods/" + projectID + "/files", params, JsonObject.class);
+        JsonArray files = GsonJsonUtils.getJsonArraySafe(response, "data");
+        if (files == null) return null;
+        for (JsonElement element : files) {
+            JsonObject file = element.getAsJsonObject();
+            JsonElement download = file.get("downloadUrl");
+            if (download != null && !download.isJsonNull() && !download.getAsString().isEmpty()) return download.getAsString();
+            if (file.has("id") && file.has("fileName")) {
+                long id = file.get("id").getAsLong();
+                return String.format("https://edge.forgecdn.net/files/%d/%03d/%s",
+                        id / 1000, id % 1000, file.get("fileName").getAsString());
+            }
+        }
+        return null;
     }
 
     private String getSha1FromModData(@NonNull JsonObject object) {
