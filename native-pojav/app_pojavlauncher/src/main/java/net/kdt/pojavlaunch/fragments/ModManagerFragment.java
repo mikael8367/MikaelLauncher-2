@@ -67,7 +67,9 @@ public class ModManagerFragment extends Fragment {
         ((TextView)view.findViewById(R.id.mod_manager_path)).setText(modsDir == null ? "Instalação não encontrada" : modsDir.getAbsolutePath());
         search.addTextChangedListener(new TextWatcher() { public void beforeTextChanged(CharSequence s,int a,int c,int d){} public void onTextChanged(CharSequence s,int a,int b,int c){ filter=s.toString().toLowerCase(); refresh(); } public void afterTextChanged(Editable e){} });
         view.findViewById(R.id.mod_manager_refresh).setOnClickListener(v -> refresh());
-        view.findViewById(R.id.mod_manager_import).setOnClickListener(v -> importLauncher.launch(new String[]{"application/java-archive", "application/zip"}));
+        // Use a broad MIME filter because Android file providers often expose modpacks
+        // as application/octet-stream even when the filename ends with .zip.
+        view.findViewById(R.id.mod_manager_import).setOnClickListener(v -> importLauncher.launch(new String[]{"*/*"}));
         view.findViewById(R.id.mod_manager_backup).setOnClickListener(v -> backupMods());
         view.findViewById(R.id.mod_manager_restore).setOnClickListener(v -> confirmRestore());
         view.findViewById(R.id.mod_manager_curseforge).setOnClickListener(v -> openCurseForge());
@@ -177,7 +179,10 @@ public class ModManagerFragment extends Fragment {
                     ImportResult result = importZip(temp);
                     finishImport(result.message);
                 } else {
-                    throw new IOException("Formato não suportado: use .jar ou .zip");
+                    // Some Android document providers return a generated name without
+                    // the original extension. Inspect the archive before rejecting it.
+                    ImportResult result = importZip(temp);
+                    finishImport(result.message);
                 }
             } catch (Exception e) {
                 final String message = e.getMessage() == null ? "arquivo inválido" : e.getMessage();
