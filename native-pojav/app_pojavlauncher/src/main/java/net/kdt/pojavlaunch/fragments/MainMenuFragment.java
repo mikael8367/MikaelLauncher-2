@@ -38,6 +38,9 @@ import net.kdt.pojavlaunch.value.MinecraftAccount;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainMenuFragment extends Fragment {
     public static final String TAG = "MainMenuFragment";
@@ -72,6 +75,7 @@ public class MainMenuFragment extends Fragment {
         mVersionSpinner = view.findViewById(R.id.mc_version_spinner);
         mAccountLabel = view.findViewById(R.id.mikael_account);
         updateAccountLabel();
+        mAccountLabel.setOnClickListener(v -> showAccountAndVersionManager());
 
         mNewsButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), UpdatesCatalogActivity.class)));
         mCustomControlButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
@@ -161,6 +165,55 @@ public class MainMenuFragment extends Fragment {
                 })
                 .setNegativeButton("Fechar", null)
                 .show();
+    }
+
+    private void showAccountAndVersionManager() {
+        if (!isAdded()) return;
+        LauncherProfiles.load();
+        List<String> entries = new ArrayList<>();
+        File[] accountFiles = new File(Tools.DIR_ACCOUNT_NEW).listFiles((dir, name) -> name.endsWith(".json"));
+        if (accountFiles != null) {
+            Arrays.sort(accountFiles, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+            for (File file : accountFiles) entries.add("CONTA  •  " + file.getName().replace(".json", ""));
+        }
+        if (LauncherProfiles.mainProfileJson != null && LauncherProfiles.mainProfileJson.profiles != null) {
+            for (java.util.Map.Entry<String, MinecraftProfile> item : LauncherProfiles.mainProfileJson.profiles.entrySet()) {
+                String version = item.getValue() == null ? "desconhecida" : item.getValue().lastVersionId;
+                entries.add("VERSÃO  •  " + item.getKey() + "  →  " + version);
+            }
+        }
+        if (entries.isEmpty()) entries.add("Nenhuma conta ou versão instalada encontrada");
+        String[] actions = {"Adicionar conta offline / skin", "Trocar conta", "Selecionar versão instalada", "Fechar"};
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Contas e versões instaladas")
+                .setMessage(String.join("\n", entries))
+                .setItems(actions, (dialog, which) -> {
+                    if (which == 0) Tools.swapFragment(requireActivity(), LocalLoginFragment.class, LocalLoginFragment.TAG, null);
+                    else if (which == 1) chooseAccount();
+                    else if (which == 2) chooseInstalledProfile();
+                }).show();
+    }
+
+    private void chooseAccount() {
+        File[] files = new File(Tools.DIR_ACCOUNT_NEW).listFiles((dir, name) -> name.endsWith(".json"));
+        if (files == null || files.length == 0) { Toast.makeText(requireContext(), "Nenhuma conta cadastrada", Toast.LENGTH_SHORT).show(); return; }
+        String[] names = new String[files.length];
+        for (int i = 0; i < files.length; i++) names[i] = files[i].getName().replace(".json", "");
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle("Trocar conta").setItems(names, (d, w) -> {
+            PojavProfile.setCurrentProfile(requireContext(), names[w]); updateAccountLabel();
+            Toast.makeText(requireContext(), "Conta ativa: " + names[w], Toast.LENGTH_SHORT).show();
+        }).show();
+    }
+
+    private void chooseInstalledProfile() {
+        if (LauncherProfiles.mainProfileJson == null || LauncherProfiles.mainProfileJson.profiles == null) return;
+        List<String> keys = new ArrayList<>(LauncherProfiles.mainProfileJson.profiles.keySet());
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext()).setTitle("Selecionar versão instalada")
+                .setItems(keys.toArray(new String[0]), (d, w) -> {
+                    LauncherPreferences.DEFAULT_PREF.edit().putString(LauncherPreferences.PREF_KEY_CURRENT_PROFILE, keys.get(w)).apply();
+                    mVersionSpinner.reloadProfiles();
+                    Toast.makeText(requireContext(), "Versão ativa: " + keys.get(w), Toast.LENGTH_SHORT).show();
+                }).show();
     }
 
     private File getCurrentProfileDirectory() {
