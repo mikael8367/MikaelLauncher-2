@@ -241,7 +241,12 @@ public class ModManagerFragment extends Fragment {
         if (lower.startsWith("mods/")) return new File(modsDir, safeZipPath(path.substring(5)));
         if (lower.startsWith("overrides/")) return new File(modsDir.getParentFile(), safeZipPath(path.substring(10)));
         if (lower.endsWith(".jar") && !lower.contains("/")) return new File(modsDir, safeZipPath(path));
-        if (isPackFile(lower) && !lower.contains("/")) return new File(modsDir.getParentFile(), safeZipPath(path));
+        if (lower.startsWith("config/") || lower.startsWith("resourcepacks/")
+                || lower.startsWith("shaderpacks/") || lower.startsWith("defaultconfigs/")
+                || lower.startsWith("kubejs/") || lower.startsWith("scripts/")
+                || lower.equals("options.txt") || lower.equals("servers.dat")) {
+            return new File(modsDir.getParentFile(), safeZipPath(path));
+        }
         return null;
     }
 
