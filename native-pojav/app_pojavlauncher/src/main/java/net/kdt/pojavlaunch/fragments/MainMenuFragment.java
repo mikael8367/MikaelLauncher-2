@@ -62,6 +62,7 @@ public class MainMenuFragment extends Fragment {
         Button mCustomControlButton = view.findViewById(R.id.custom_control_button);
         Button mInstallJarButton = view.findViewById(R.id.install_jar_button);
         Button mShareLogsButton = view.findViewById(R.id.share_logs_button);
+        Button mCrashRecoveryButton = view.findViewById(R.id.crash_recovery_button);
         Button mOpenDirectoryButton = view.findViewById(R.id.open_files_button);
         Button mImportResourcepackButton = view.findViewById(R.id.import_resourcepack_button);
         Button mImportShaderpackButton = view.findViewById(R.id.import_shaderpack_button);
@@ -85,6 +86,7 @@ public class MainMenuFragment extends Fragment {
         mPlayButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
 
         mShareLogsButton.setOnClickListener((v) -> shareLog(requireContext()));
+        if (mCrashRecoveryButton != null) mCrashRecoveryButton.setOnClickListener(v -> showCrashRecoveryDialog());
         mShareLogsButton.setOnLongClickListener((v) -> {
             new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                     .setTitle("Diagnóstico de logs")
@@ -116,6 +118,31 @@ public class MainMenuFragment extends Fragment {
             Tools.swapFragment(requireActivity(), GamepadMapperFragment.class, GamepadMapperFragment.TAG, null);
             return true;
         });
+
+        if (requireActivity().getIntent().getBooleanExtra("mikael_crash_recovery", false)) {
+            requireActivity().getIntent().removeExtra("mikael_crash_recovery");
+            view.postDelayed(this::showCrashRecoveryDialog, 350);
+        }
+    }
+
+    private void showCrashRecoveryDialog() {
+        if (!isAdded()) return;
+        File gameDir = getCurrentProfileDirectory();
+        String diagnosis = MikaelFeatureManager.analyzeLogs(gameDir);
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Resolver crash / gerenciar mods")
+                .setMessage(diagnosis)
+                .setPositiveButton("Gerenciar mods", (dialog, which) -> {
+                    Bundle args = new Bundle();
+                    args.putString("curseforge_target_game_dir", gameDir.getAbsolutePath());
+                    LauncherProfiles.load();
+                    MinecraftProfile profile = LauncherProfiles.getCurrentProfile();
+                    if (profile != null) args.putString("curseforge_mc_version", profile.lastVersionId);
+                    Tools.swapFragment(requireActivity(), ModManagerFragment.class, ModManagerFragment.TAG, args);
+                })
+                .setNeutralButton("Abrir pasta", (dialog, which) -> Tools.openPath(requireContext(), gameDir, false))
+                .setNegativeButton("Fechar", null)
+                .show();
     }
 
     private File getCurrentProfileDirectory() {

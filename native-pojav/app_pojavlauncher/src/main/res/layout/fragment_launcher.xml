@@ -271,6 +271,19 @@
                 android:textColor="@color/primary_text" />
 
             <com.kdt.mcgui.LauncherMenuButton
+                android:id="@+id/crash_recovery_button"
+                style="@style/LauncherMenuButton.Universal"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:gravity="center_vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="10dp"
+                android:background="@drawable/mikael_menu_button"
+                android:drawableStart="@android:drawable/ic_dialog_alert"
+                android:text="Resolver crash / gerenciar mods"
+                android:textColor="@color/primary_text" />
+
+            <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/open_files_button"
                 style="@style/LauncherMenuButton.Universal"
                 android:layout_width="match_parent"

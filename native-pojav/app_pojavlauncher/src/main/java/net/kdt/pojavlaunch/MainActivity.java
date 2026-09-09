@@ -213,7 +213,8 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
                     runCraft(finalVersion, mVersionInfo);
                 }catch (Throwable e){
-                    Tools.showErrorRemote(e);
+                    Log.e("MainActivity", "Minecraft terminou com erro", e);
+                    returnToLauncherAfterGame(true);
                 }
             });
         } catch (Throwable e) {
@@ -367,8 +368,21 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         int requiredJavaVersion = 8;
         if(version.javaVersion != null) requiredJavaVersion = version.javaVersion.majorVersion;
         Tools.launchMinecraft(this, minecraftAccount, minecraftProfile, versionId, requiredJavaVersion);
-        //Note that we actually stall in the above function, even if the game crashes. But let's be safe.
-        Tools.runOnUiThread(()-> mServiceBinder.isActive = false);
+        // launchMinecraft blocks until Minecraft exits, including a crash.
+        Tools.runOnUiThread(()-> {
+            if (mServiceBinder != null) mServiceBinder.isActive = false;
+            returnToLauncherAfterGame(false);
+        });
+    }
+
+    private void returnToLauncherAfterGame(boolean crashed) {
+        if (isFinishing()) return;
+        Intent intent = new Intent(this, LauncherActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra("mikael_crash_recovery", crashed)
+                .putExtra("mikael_crash_game_dir", Tools.getGameDirPath(minecraftProfile).getAbsolutePath());
+        startActivity(intent);
+        finish();
     }
 
     private void dialogSendCustomKey() {
